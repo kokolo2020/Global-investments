@@ -85,7 +85,7 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.
   </div>
  </main>
  <aside class="right">
-  <section class="card lb-card" id="leaderboard"><div class="right-head"><h3>Global Leaderboard</h3><a id="fullLeaderboard">View All</a></div><div class="periods" id="periodTabs"><button class="active" data-period="Weekly">Weekly</button><button data-period="Monthly">Monthly</button><button data-period="All Time">All Time</button></div><table class="lb-table"><thead><tr><th>#</th><th>User / Strategy</th><th>Return</th><th>Risk</th><th>Reaction</th></tr></thead><tbody id="leaderboardBody"></tbody></table><div class="rank-note">Demo competitors · returns and reactions are illustrative</div></section>
+  <section class="card lb-card" id="leaderboard"><div class="right-head"><h3>You vs AI · Live Paper Leaderboard</h3><a id="fullLeaderboard">View All</a></div><div class="periods" id="periodTabs"><button class="active" data-period="Weekly">Weekly</button><button data-period="Monthly">Monthly</button><button data-period="All Time">All Time</button></div><table class="lb-table"><thead><tr><th>#</th><th>User / Strategy</th><th>Return</th><th>Equity</th><th>Type</th></tr></thead><tbody id="leaderboardBody"></tbody></table><div class="rank-note">Your live local paper competition; global leaderboard launches with shared database</div></section>
   <section class="card strategy-card" id="strategies"><div class="right-head"><h3>Top Performing Strategies</h3><a id="allStrategies">View All</a></div><table class="strategy-table"><thead><tr><th>Strategy</th><th>Type</th><th>Return</th><th>Users</th><th>Reaction</th></tr></thead><tbody id="strategyBody"></tbody></table></section>
   <section class="card movers-card" id="markets"><div class="right-head"><h3>Choose Your Coins</h3><span style="font-size:11px;color:#00dc92">LIVE WHEN CONNECTED</span></div><div class="market-tabs" id="marketTabs"><button class="active" data-market="Crypto">All 20 Coins</button></div><table class="movers-table"><thead><tr><th>Symbol</th><th>Price</th><th>24h %</th><th>Add $500</th></tr></thead><tbody id="moversBody"></tbody></table></section>
  </aside>
@@ -271,7 +271,7 @@ async function refreshLiveQuotes(){
    t.querySelector(".tvalue").innerHTML=num(a.price,2)+' <b class="'+(a.change>=0?"up":"down")+'">'+formatPct(a.change)+'</b>';
   });
   startAIPortfolio();recordCompetitionSnapshot();renderAll();showStrategyPicks();
- }catch(e){updateLiveStatus("● LIVE FEED UNAVAILABLE · paper trades paused · demo stocks",false);}
+ }catch(e){updateLiveStatus("● LIVE FEED UNAVAILABLE · paper trades paused",false);}
 }
 el("bell").onclick=function(){toast("There are no live notifications in the design preview.")};save();renderAll();showStrategyPicks();refreshLiveQuotes();setInterval(refreshLiveQuotes,60000);
 })();
