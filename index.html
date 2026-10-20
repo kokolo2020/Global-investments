@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#041322">
-<title>Global Investment Challenge · V1.0</title>
+<title>Global Investment Challenge · V1.1</title>
 <style>
 :root{--bg:#031321;--panel:#071e33;--panel2:#0c2540;--edge:#193651;--muted:#9cb2ce;--text:#f6faff;--blue:#087aff;--blue2:#0064ed;--green:#00dc92;--red:#ff5462;--gold:#ffbf3e}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);font:14px/1.45 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--text);min-width:320px}
@@ -43,7 +43,7 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.
 <header class="topbar">
  <div class="brand"><div class="orb" aria-hidden="true"></div><div><h1>Global Investment Challenge</h1><small>People + AI + Strategies for a Smarter Financial Future</small></div></div>
  <div class="tickers"><div class="ticker"><div class="tlabel">S&amp;P 500</div><div class="tvalue">5,502.1 <b class="up">+0.84%</b></div></div><div class="ticker"><div class="tlabel">NASDAQ</div><div class="tvalue">17,352.6 <b class="up">+1.12%</b></div></div><div class="ticker"><div class="tlabel">BTC</div><div class="tvalue">63,245.3 <b class="up">+2.31%</b></div></div><div class="ticker"><div class="tlabel">ETH</div><div class="tvalue">3,245.8 <b class="up">+1.76%</b></div></div></div>
- <div class="online" title="Sample participation count">1,248 Online</div><button class="bell" id="bell" aria-label="Notifications">♧</button><button class="avatar-btn" id="profile"><span class="avatar">●</span><span id="topGuest">Guest1024</span>⌄</button>
+ <div id="liveFeedStatus" style="font-size:11px;max-width:190px;color:#ffbf3e" aria-live="polite">Connecting to crypto feed…</div><div class="online" title="Sample participation count">1,248 Demo Online</div><button class="bell" id="bell" aria-label="Notifications">♧</button><button class="avatar-btn" id="profile"><span class="avatar">●</span><span id="topGuest">Guest1024</span>⌄</button>
 </header>
 <div class="workspace">
  <aside class="sidebar">
@@ -68,7 +68,7 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.
   <div class="trade-layout" id="trade">
    <section class="card market-card"><div class="asset-header"><div class="asset-logo" id="coinLogo">●</div><div><div><span class="symbol-name" id="chartSymbol">AAPL</span><span class="fullname" id="chartFull">Apple Inc.</span></div><div><span class="price" id="chartPrice">$214.32</span><span class="change" id="chartChange">+2.18 (1.03%)</span></div></div></div>
     <div class="time-tabs" id="timeTabs"><button class="active" data-time="1D">1D</button><button data-time="1W">1W</button><button data-time="1M">1M</button><button data-time="3M">3M</button><button data-time="1Y">1Y</button><button data-time="ALL">ALL</button></div>
-    <svg class="candle-svg" id="candle" viewBox="0 0 500 230" role="img" aria-label="Illustrative candlestick chart"></svg><div class="chart-card-note">Illustrative candles · sample prices, not live quotes</div>
+    <svg class="candle-svg" id="candle" viewBox="0 0 500 230" role="img" aria-label="Illustrative candlestick chart"></svg><div class="chart-card-note">Illustrative candles · not live price history (live crypto spot quotes above when connected)</div>
    </section>
    <section class="card order" id="orderPanel"><div class="pick-tabs" id="pickTabs"><button class="active" data-pick="AI Pick">AI Pick</button><button data-pick="Manual Pick">Manual Pick</button><button data-pick="Hybrid">Hybrid</button></div>
     <div class="section-h" id="suggestionTitle">AI Suggested Trade <span style="font-size:13px;color:#008fff">ⓘ</span></div><div class="confidence"><span id="confidenceText">◉ &nbsp; Confidence: 78%</span><span class="bar"><i id="confidenceBar"></i></span></div>
@@ -98,7 +98,7 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.
 (function(){
 "use strict";
 var ASSETS={AAPL:{name:"Apple Inc.",icon:"●",price:214.32,change:1.03,delta:2.18},BTC:{name:"Bitcoin",icon:"₿",price:63245.30,change:2.31,delta:1426},NVDA:{name:"NVIDIA Corp.",icon:"◉",price:922.15,change:3.59,delta:32.0},ETH:{name:"Ethereum",icon:"◆",price:3245.80,change:1.76,delta:56.15},MSFT:{name:"Microsoft Corp.",icon:"▦",price:415.20,change:.80,delta:3.30},SOL:{name:"Solana",icon:"◎",price:158.20,change:2.18,delta:3.38},TSLA:{name:"Tesla Inc.",icon:"⚡",price:184.56,change:-1.12,delta:-2.09},AMZN:{name:"Amazon.com Inc.",icon:"a",price:178.96,change:.74,delta:1.31}};
-var storageKey="global-investment-challenge-v1";var initial={name:"Guest1024",id:"G1024-DEMO",cash:512.45,realized:0,positions:{AAPL:{qty:10,cost:206.15},BTC:{qty:.05,cost:57600},NVDA:{qty:5,cost:909.21}},trades:[],reactionVotes:{},ideas:[]};
+var liveUpdated={};var liveStatus="Connecting to crypto feed…";var storageKey="global-investment-challenge-v1";var initial={name:"Guest1024",id:"G1024-DEMO",cash:512.45,realized:0,positions:{AAPL:{qty:10,cost:206.15},BTC:{qty:.05,cost:57600},NVDA:{qty:5,cost:909.21}},trades:[],reactionVotes:{},ideas:[]};
 function readState(){try{var o=JSON.parse(localStorage.getItem(storageKey));if(o&&o.positions&&typeof o.cash==="number")return o}catch(e){}return JSON.parse(JSON.stringify(initial))}
 var state=readState(), selected="AAPL",action="Buy",period="Weekly",positionTab="My Positions",marketTab="Stocks",pick="AI Pick",time="1D",notifyTimer=null;
 function save(){try{localStorage.setItem(storageKey,JSON.stringify(state))}catch(e){toast("Browser storage is unavailable. Export a backup to save changes.")}}
@@ -122,7 +122,7 @@ if(positionTab==="Trade History"){area.innerHTML=state.trades.length?'<table cla
 if(positionTab==="My Strategies"){area.innerHTML='<div style="padding:24px;color:#bad0e6">Active strategy mode: <strong style="color:white">'+safe(pick)+'</strong>. Strategy engine and shared competitions will be connected in a later release. Orders here are manually confirmed paper trades.</div>';return}
 if(positionTab==="Performance"){area.innerHTML='<div style="padding:24px;color:#bad0e6">Portfolio net return: <strong class="'+(equity()>=10000?"up":"down")+'">'+formatPct((equity()/10000-1)*100)+'</strong> &nbsp; · &nbsp; Realized trade P&amp;L: '+money(state.realized)+' &nbsp; · &nbsp; Cash: '+money(state.cash)+'. Performance chart below is illustrative.</div>';return}
 area.innerHTML='<div class="empty-state">Saved ideas are not enabled in the local preview yet.</div>'}
-function executeTrade(side,s,amount){if(!isFinite(amount)||amount<=0){toast("Enter a valid amount above $0.");return}var price=ASSETS[s].price,qty=amount/price,existing=state.positions[s];if(side==="Buy"){if(amount>state.cash+0.0001){toast("Insufficient virtual cash. Available: "+money(state.cash));return}state.cash-=amount;if(existing){existing.cost=(existing.cost*existing.qty+amount)/(existing.qty+qty);existing.qty+=qty}else{state.positions[s]={qty:qty,cost:price}}state.trades.push({side:side,symbol:s,qty:qty,price:price,amount:amount,pnl:0,at:new Date().toISOString()})}else{if(!existing||existing.qty<qty-1e-9){toast("You cannot sell more than you own. Use Close to exit the entire position.");return}var pnl=(price-existing.cost)*qty;state.cash+=amount;state.realized+=pnl;existing.qty-=qty;if(existing.qty<1e-9)delete state.positions[s];state.trades.push({side:side,symbol:s,qty:qty,price:price,amount:amount,pnl:pnl,at:new Date().toISOString()})}save();renderAll();toast(side+" paper trade saved: "+s+" · "+money(amount)+". Simulated fill at demo price.")}
+function executeTrade(side,s,amount){if(!liveUpdated[s] || Date.now()-liveUpdated[s]>120000){toast("Live quote required for "+s+". Paper order blocked until valid live market data is available.");return}if(!isFinite(amount)||amount<=0){toast("Enter a valid amount above $0.");return}var price=ASSETS[s].price,qty=amount/price,existing=state.positions[s];if(side==="Buy"){if(amount>state.cash+0.0001){toast("Insufficient virtual cash. Available: "+money(state.cash));return}state.cash-=amount;if(existing){existing.cost=(existing.cost*existing.qty+amount)/(existing.qty+qty);existing.qty+=qty}else{state.positions[s]={qty:qty,cost:price}}state.trades.push({side:side,symbol:s,qty:qty,price:price,amount:amount,pnl:0,at:new Date().toISOString()})}else{if(!existing||existing.qty<qty-1e-9){toast("You cannot sell more than you own. Use Close to exit the entire position.");return}var pnl=(price-existing.cost)*qty;state.cash+=amount;state.realized+=pnl;existing.qty-=qty;if(existing.qty<1e-9)delete state.positions[s];state.trades.push({side:side,symbol:s,qty:qty,price:price,amount:amount,pnl:pnl,at:new Date().toISOString()})}save();renderAll();toast(side+" paper trade saved: "+s+" · "+money(amount)+". Simulated fill using latest live quote; not an exchange execution.")}
 function closePosition(s){var p=state.positions[s];if(!p)return;executeTrade("Sell",s,p.qty*ASSETS[s].price)}
 var rankSets={Weekly:[["AlphaWolf (AI)",28.4,8.2,"🔥","1.2K"],["SmartTrade88",24.7,10.1,"👏","980"],["GlobalQuant",22.3,9.8,"👍","864"],["AI-Hybrid-Pro",20.1,7.2,"🚀","756"],["MoonShot",18.9,12.4,"⭐","702"]],Monthly:[["QuantVoyager",46.3,11.6,"🔥","2.5K"],["AlphaWolf (AI)",41.9,9.3,"👏","1.9K"],["NebulaTrend",38.5,13.1,"🚀","1.4K"],["SmartTrade88",33.2,10.4,"👍","1.1K"],["CryptoCompass",29.7,14.8,"⭐","994"]],"All Time":[["AtlasQuant",136.2,19.1,"🏆","9.2K"],["NeuralEdge AI",118.7,17.2,"🔥","8.7K"],["AlphaWolf (AI)",97.3,20.2,"👏","6.4K"],["GlobalQuant",91.4,17.0,"🚀","5.1K"],["LongViewTrader",85.1,15.6,"⭐","4.2K"]]};var emojis=["🔥","👏","👍","🚀","⭐"];
 function renderLeaderboards(){el("periodTabs").querySelectorAll("button").forEach(function(b){b.classList.toggle("active",b.dataset.period===period)});var data=rankSets[period];el("leaderboardBody").innerHTML=data.map(function(x,i){var key=period+"-"+i,v=state.reactionVotes[key]||x[3],vote=state.reactionVotes[key]?" +1":"";return '<tr><td>'+(i===0?"🥇":i+1)+'</td><td class="lb-name">🌐 '+safe(x[0])+'</td><td class="up">+'+x[1]+'%</td><td>'+x[2]+'%</td><td><button class="reaction" data-react="'+key+'" title="Give a reaction">'+v+" "+x[4]+vote+'</button></td></tr>'}).join("")+'<tr class="me"><td>258</td><td>🌐 '+safe(state.name)+' (You)</td><td class="'+(equity()>=10000?"up":"down")+'">'+formatPct((equity()/10000-1)*100)+'</td><td>5.6%</td><td><button class="reaction" data-own-react="yes" title="Demo reactions">📈 21</button></td></tr>';el("leaderboardBody").querySelectorAll("[data-react]").forEach(function(b){b.onclick=function(){var key=b.dataset.react;var old=state.reactionVotes[key]||"👏";var next=emojis[(emojis.indexOf(old)+1)%emojis.length];state.reactionVotes[key]=next;save();renderLeaderboards();toast("Reaction changed to "+next+" (visible only in this browser).")}});el("leaderboardBody").querySelector("[data-own-react]").onclick=function(){toast("Shared reactions will become available after the backend launches.")}}
@@ -149,7 +149,33 @@ el("positionTabs").querySelectorAll("button").forEach(function(b){b.onclick=func
 document.querySelectorAll("[data-nav]").forEach(function(b){b.onclick=function(){document.querySelectorAll("[data-nav]").forEach(function(x){x.classList.toggle("active",x===b)});var name=b.dataset.nav;if(name==="How It Works"){openModal("How Global Investment Challenge Works","V1 is a working local paper-trading interface with fictional market quotes, illustrative competitor rankings and charts. Trades are stored in this browser. Weekly, monthly and all-time leaderboards can be explored. Live feeds, real AI signals, global user accounts and real shared ranking require future backend integration.",[{label:"Got it",fn:hideModal}]);return}if(name==="Community"){openModal("Community · Reactions Only","The final global community will support emoji-only reactions and online participant counts—without a public chat. In this preview, reactions stay on your device and online counts are sample data.",[{label:"View Leaderboard",fn:function(){hideModal();el("leaderboard").scrollIntoView({behavior:"smooth"})}},{label:"Close",secondary:true,fn:hideModal}]);return}var id={"Home":"overview","My Dashboard":"positions","Trade":"trade","Strategies":"strategies","Leaderboard":"leaderboard","Markets":"markets"}[name];if(id)el(id).scrollIntoView({behavior:"smooth",block:"start"})}});
 el("fullLeaderboard").onclick=function(){openModal("Global Leaderboard · "+period,"The dashboard currently shows the top five example competitors and your guest entry. Weekly, monthly and all-time views are interactive but global rankings are not live or verified yet.",[{label:"Close",fn:hideModal}])};
 el("allStrategies").onclick=function(){openModal("Community Strategies","These five example strategies show the planned ranking format. Strategy publishing, copying and independent backtesting will be introduced with the backend.",[{label:"Close",fn:hideModal}])};
-el("bell").onclick=function(){toast("There are no live notifications in the design preview.")};save();renderAll();
+function updateLiveStatus(text,ok){liveStatus=text;var elStatus=document.getElementById("liveFeedStatus");if(elStatus){elStatus.textContent=text;elStatus.style.color=ok?"#00dc92":"#ffbf3e"}}
+async function refreshLiveQuotes(){
+ try{
+  var response=await fetch("/.netlify/functions/quotes",{cache:"no-store"});
+  if(!response.ok)throw Error("feed unavailable");
+  var data=await response.json(),count=0;
+  for(var symbol of ["BTC","ETH","SOL"]){
+   var q=data.quotes&&data.quotes[symbol];
+   if(!q || !(q.price>0))continue;
+   var updated=Date.parse(q.updatedAt);
+   if(!Number.isFinite(updated)||Date.now()-updated>120000)continue;
+   ASSETS[symbol].price=q.price;
+   ASSETS[symbol].change=q.change;
+   ASSETS[symbol].delta=q.price*q.change/(100+q.change);
+   liveUpdated[symbol]=updated;count++;
+  }
+  if(!count)throw Error("stale quotes");
+  updateLiveStatus("● LIVE CRYPTO · CoinGecko · "+new Date().toLocaleTimeString()+" · stocks remain demo",true);
+  document.querySelectorAll(".ticker").forEach(function(t){
+   var name=t.querySelector(".tlabel")?.textContent.trim();
+   var a=ASSETS[name];if(!a||!liveUpdated[name])return;
+   t.querySelector(".tvalue").innerHTML=num(a.price,2)+' <b class="'+(a.change>=0?"up":"down")+'">'+formatPct(a.change)+'</b>';
+  });
+  renderAll();
+ }catch(e){updateLiveStatus("● LIVE FEED UNAVAILABLE · paper trades paused · demo stocks",false);}
+}
+el("bell").onclick=function(){toast("There are no live notifications in the design preview.")};save();renderAll();refreshLiveQuotes();setInterval(refreshLiveQuotes,60000);
 })();
 </script>
 </body></html>
