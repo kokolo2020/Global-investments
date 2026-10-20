@@ -11,7 +11,7 @@ exports.handler = async () => {
       if(!x || !(x.usd>0) || !Number.isFinite(x.usd))continue;
       quotes[symbol]={price:x.usd,change:Number(x.usd_24h_change)||0,updatedAt:x.last_updated_at?new Date(x.last_updated_at*1000).toISOString():new Date().toISOString()};
     }
-    if(Object.keys(quotes).length!==20)throw Error("Incomplete provider response");
+    if(Object.keys(quotes).length<1)throw Error("No live quotes returned");
     return {statusCode:200,headers:{"content-type":"application/json","cache-control":"public, max-age=15"},body:JSON.stringify({source:"CoinGecko",quotes})};
   }catch(e){return {statusCode:503,headers:{"content-type":"application/json","cache-control":"no-store"},body:JSON.stringify({error:"Live quotes unavailable"})};}
 };
