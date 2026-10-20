@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#041322">
-<title>Global Investment Challenge · V1.9</title>
+<title>Global Investment Challenge · V2.0</title>
 <style>
 :root{--bg:#031321;--panel:#071e33;--panel2:#0c2540;--edge:#193651;--muted:#9cb2ce;--text:#f6faff;--blue:#087aff;--blue2:#0064ed;--green:#00dc92;--red:#ff5462;--gold:#ffbf3e}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);font:14px/1.45 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--text);min-width:320px}
@@ -41,7 +41,7 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.
 <body>
 <div class="app">
 <header class="topbar">
- <div class="brand"><div class="orb" aria-hidden="true"></div><div><h1>Global Investment Challenge <span style="font-size:12px;color:#00dc92;border:1px solid #00dc92;border-radius:6px;padding:3px 7px;white-space:nowrap">V1.9 REAL DATA</span></h1><small>People + AI + Strategies for a Smarter Financial Future</small></div></div>
+ <div class="brand"><div class="orb" aria-hidden="true"></div><div><h1>Global Investment Challenge <span style="font-size:12px;color:#00dc92;border:1px solid #00dc92;border-radius:6px;padding:3px 7px;white-space:nowrap">V2.0 YOU vs AI</span></h1><small>People + AI + Strategies for a Smarter Financial Future</small></div></div>
  <div class="tickers"><div class="ticker"><div class="tlabel">SOL</div><div class="tvalue">Waiting for live quote</div></div><div class="ticker"><div class="tlabel">XRP</div><div class="tvalue">Waiting for live quote</div></div><div class="ticker"><div class="tlabel">BTC</div><div class="tvalue">Waiting for live quote</div></div><div class="ticker"><div class="tlabel">ETH</div><div class="tvalue">Waiting for live quote</div></div></div>
  <div style="font-size:11px;color:#9cb2ce">Starting $2,500 · Funding cap $5,000</div><div id="liveFeedStatus" style="font-size:11px;max-width:190px;color:#ffbf3e" aria-live="polite">Connecting to crypto feed…</div><div class="online" title="Sample participation count">Demo participants</div><button class="bell" id="bell" aria-label="Notifications">♧</button><button class="avatar-btn" id="profile"><span class="avatar">●</span><span id="topGuest">Guest1024</span>⌄</button>
 </header>
@@ -142,9 +142,43 @@ if(positionTab==="Performance"){area.innerHTML='<div style="padding:24px;color:#
 area.innerHTML='<div class="empty-state">Saved ideas are not enabled in the local preview yet.</div>'}
 function executeTrade(side,s,amount){if(!COIN_SYMBOLS.includes(s)){toast("Select one of the 20 supported coins.");return}if((side==="Buy"||side==="Short")&&(Math.abs(amount-500)>0.001||state.positions[s]||Object.keys(state.positions).length>=5)){toast("Buy $500 per unique coin, maximum five coins.");return}if(!liveUpdated[s] || Date.now()-liveUpdated[s]>300000){toast("Live quote required for "+s+". Paper order blocked until valid live market data is available.");return}if(!Number.isFinite(amount)||amount<=0){toast("Enter a valid amount above $0.");return}var price=ASSETS[s].price,qty=amount/price,existing=state.positions[s];if(side==="Short"){if(amount>state.cash+0.0001){toast("Insufficient virtual cash.");return}state.cash-=amount;state.positions[s]={qty:qty,cost:price,margin:amount,direction:"Short"};state.trades.push({side:"Short",symbol:s,qty:qty,price:price,amount:amount,pnl:0,at:new Date().toISOString()})}else if(side==="Buy"){if(amount>state.cash+0.0001){toast("Insufficient virtual cash. Available: "+money(state.cash));return}state.cash-=amount;if(existing){existing.cost=(existing.cost*existing.qty+amount)/(existing.qty+qty);existing.qty+=qty}else{state.positions[s]={qty:qty,cost:price}}state.trades.push({side:side,symbol:s,qty:qty,price:price,amount:amount,pnl:0,at:new Date().toISOString()})}else if(side==="Cover"){if(!existing||existing.direction!=="Short"){toast("No short position to cover.");return}var pnl=(existing.cost-price)*existing.qty;state.cash+=Math.max(0,existing.margin+pnl);state.realized+=pnl;delete state.positions[s];state.trades.push({side:"Cover",symbol:s,qty:existing.qty,price:price,amount:existing.qty*price,pnl:pnl,at:new Date().toISOString()})}else{if(!existing||existing.direction==="Short"||existing.qty<qty-1e-9){toast("You cannot sell more than your long holdings.");return}var pnl=(price-existing.cost)*qty;state.cash+=amount;state.realized+=pnl;existing.qty-=qty;if(existing.qty<1e-9)delete state.positions[s];state.trades.push({side:side,symbol:s,qty:qty,price:price,amount:amount,pnl:pnl,at:new Date().toISOString()})}save();renderAll();toast(side+" paper trade saved: "+s+" · "+money(amount)+". Simulated fill using latest live quote; not an exchange execution.")}
 function closePosition(s){var p=state.positions[s];if(!p)return;executeTrade(p.direction==="Short"?"Cover":"Sell",s,p.qty*ASSETS[s].price)}
+function portfolioEquityAI(){
+ var p=state.aiPortfolio;if(!p)return STARTING_CAPITAL;
+ return (p.cash||0)+Object.keys(p.positions).reduce(function(sum,c){var x=p.positions[c],price=liveUpdated[c]?ASSETS[c].price:x.entry;return sum+x.qty*price},0);
+}
+function startAIPortfolio(){
+ if(state.aiPortfolio)return;
+ var ranked=strategyRank().filter(function(c){return liveUpdated[c]&&ASSETS[c].price>0}).slice(0,5);
+ if(ranked.length<5)return;
+ var positions={};ranked.forEach(function(c){positions[c]={qty:500/ASSETS[c].price,entry:ASSETS[c].price}});
+ state.aiPortfolio={cash:0,positions:positions,startedAt:new Date().toISOString(),strategy:el("strategyChoice").value};
+ state.trackHistory=[];save();
+ toast("AI started its five-coin $2,500 virtual portfolio.");
+}
+function recordCompetitionSnapshot(){
+ if(!state.aiPortfolio)return;
+ if(!Array.isArray(state.trackHistory))state.trackHistory=[];
+ var now=Date.now(),last=state.trackHistory[state.trackHistory.length-1];
+ if(last&&now-last.t<60000)return;
+ state.trackHistory.push({t:now,user:equity(),ai:portfolioEquityAI()});
+ state.trackHistory=state.trackHistory.filter(function(p){return now-p.t<95*86400000}).slice(-15000);
+ save();
+}
+function competitionReturn(which){
+ var history=state.trackHistory||[],value=which==="ai"?portfolioEquityAI():equity();
+ var windowDays=period==="Weekly"?7:period==="Monthly"?30:36500;
+ var cutoff=Date.now()-windowDays*86400000;
+ var samples=history.filter(function(p){return p.t>=cutoff&&Number.isFinite(p[which])});
+ // When the account is younger than the selected window, compare from initial funding.
+ var baseline=samples.length&&history[0].t<=cutoff?samples[0][which]:STARTING_CAPITAL;
+ return 100*(value/baseline-1);
+}
 function renderLeaderboards(){
  el("periodTabs").querySelectorAll("button").forEach(function(b){b.classList.toggle("active",b.dataset.period===period)});
- el("leaderboardBody").innerHTML='<tr><td colspan="5" style="padding:24px;text-align:center;color:#b4c8de">No verified global rankings yet. Shared leaderboard requires server-side accounts, an authoritative trade ledger and independently priced historical equity snapshots. Local guest activity is not eligible for global rankings.</td></tr>';
+ var hasAI=!!state.aiPortfolio,players=[{name:safe(state.name)+" (You)",value:equity(),r:competitionReturn("user"),tag:"USER"}];
+ if(hasAI)players.push({name:"AI — "+safe(state.aiPortfolio.strategy),value:portfolioEquityAI(),r:competitionReturn("ai"),tag:"AI"});
+ players.sort(function(a,b){return b.r-a.r});
+ el("leaderboardBody").innerHTML=players.map(function(p,i){return '<tr><td>'+(i+1)+'</td><td class="lb-name">'+p.name+'</td><td class="'+(p.r>=0?"up":"down")+'">'+formatPct(p.r)+'</td><td>'+money(p.value)+'</td><td>'+p.tag+'</td></tr>'}).join("")+'<tr><td colspan="5" style="color:#9cb2ce;font-size:11px;padding:12px">Local You vs AI paper competition · actual recorded virtual positions, marked to live spot quotes. Both start at $2,500. Period returns use available snapshots; if there is insufficient history they are since inception. Global rankings require shared accounts.</td></tr>';
 }
 function renderStrategies(){
  el("strategyBody").innerHTML='<tr><td colspan="5" style="padding:20px;text-align:center;color:#b4c8de">No verified strategy returns yet. Results will appear after actual tracked paper trades and sufficient observation time.</td></tr>';
@@ -176,7 +210,7 @@ el("timeTabs").querySelectorAll("button").forEach(function(b){b.onclick=function
 el("pickTabs").querySelectorAll("button").forEach(function(b){b.onclick=function(){pick=b.dataset.pick;el("pickTabs").querySelectorAll("button").forEach(function(x){x.classList.toggle("active",x===b)});el("suggestionTitle").textContent=pick==="Manual Pick"?"Manual Paper Trade":pick==="Hybrid"?"Hybrid Trade Idea":"AI Suggested Trade";el("confidenceText").textContent=pick==="Manual Pick"?"◉  Your Decision":pick==="Hybrid"?"◉  No verified predictive score":"◉  No verified predictive score";el("confidenceBar").style.width=pick==="Manual Pick"?"0%":pick==="Hybrid"?"82%":"78%";toast(pick+" selected. This preview does not run a predictive AI model.")}});el("periodTabs").querySelectorAll("button").forEach(function(b){b.onclick=function(){period=b.dataset.period;renderLeaderboards()}});el("marketTabs").querySelectorAll("button").forEach(function(b){b.onclick=function(){marketTab=b.dataset.market;renderMarkets()}});
 el("positionTabs").querySelectorAll("button").forEach(function(b){b.onclick=function(){positionTab=b.dataset.positiontab;el("positionTabs").querySelectorAll("button").forEach(function(x){x.classList.toggle("active",x===b)});renderPositions()}});
 document.querySelectorAll("[data-nav]").forEach(function(b){b.onclick=function(){document.querySelectorAll("[data-nav]").forEach(function(x){x.classList.toggle("active",x===b)});var name=b.dataset.nav;if(name==="How It Works"){openModal("How Global Investment Challenge Works","V1 is a working local paper-trading interface with fictional market quotes, illustrative competitor rankings and charts. Trades are stored in this browser. Weekly, monthly and all-time leaderboards can be explored. Live feeds, real AI signals, global user accounts and real shared ranking require future backend integration.",[{label:"Got it",fn:hideModal}]);return}if(name==="Community"){openModal("Community · Reactions Only","The final global community will support emoji-only reactions and online participant counts—without a public chat. In this preview, reactions stay on your device and online counts are sample data.",[{label:"View Leaderboard",fn:function(){hideModal();el("leaderboard").scrollIntoView({behavior:"smooth"})}},{label:"Close",secondary:true,fn:hideModal}]);return}var id={"Home":"overview","My Dashboard":"positions","Trade":"trade","Strategies":"strategies","Leaderboard":"leaderboard","Markets":"markets"}[name];if(id)el(id).scrollIntoView({behavior:"smooth",block:"start"})}});
-el("fullLeaderboard").onclick=function(){openModal("Global Leaderboard · "+period,"Global rankings are not populated until accounts and server-verified trading records are enabled.",[{label:"Close",fn:hideModal}])};
+el("fullLeaderboard").onclick=function(){openModal("Global Leaderboard · "+period,"You vs AI uses recorded local virtual trades and live market quotes. Worldwide ranking will require verified shared accounts.",[{label:"Close",fn:hideModal}])};
 el("allStrategies").onclick=function(){openModal("Community Strategies","Performance is not displayed until returns are measured from real quotes and recorded virtual orders.",[{label:"Close",fn:hideModal}])};
 var STRATEGY_INFO={
  momentum:"Ranks the available coins by their observed 24-hour percentage gains. Can chase reversals.",
@@ -236,7 +270,7 @@ async function refreshLiveQuotes(){
    var a=ASSETS[name];if(!a||!liveUpdated[name])return;
    t.querySelector(".tvalue").innerHTML=num(a.price,2)+' <b class="'+(a.change>=0?"up":"down")+'">'+formatPct(a.change)+'</b>';
   });
-  renderAll();showStrategyPicks();
+  startAIPortfolio();recordCompetitionSnapshot();renderAll();showStrategyPicks();
  }catch(e){updateLiveStatus("● LIVE FEED UNAVAILABLE · paper trades paused · demo stocks",false);}
 }
 el("bell").onclick=function(){toast("There are no live notifications in the design preview.")};save();renderAll();showStrategyPicks();refreshLiveQuotes();setInterval(refreshLiveQuotes,60000);
