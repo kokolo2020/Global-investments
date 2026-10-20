@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#041322">
-<title>Global Investment Challenge · V2.5</title>
+<title>Global Investment Challenge · V2.6</title>
 <style>
 :root{--bg:#031321;--panel:#071e33;--panel2:#0c2540;--edge:#193651;--muted:#9cb2ce;--text:#f6faff;--blue:#087aff;--blue2:#0064ed;--green:#00dc92;--red:#ff5462;--gold:#ffbf3e}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);font:14px/1.45 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--text);min-width:320px}
@@ -41,7 +41,7 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.
 <body>
 <div class="app">
 <header class="topbar">
- <div class="brand"><div class="orb" aria-hidden="true"></div><div><h1>Global Investment Challenge <span style="font-size:12px;color:#00dc92;border:1px solid #00dc92;border-radius:6px;padding:3px 7px;white-space:nowrap">V2.5 LIVE LEADERBOARD</span></h1><small>People + AI + Strategies for a Smarter Financial Future</small></div></div>
+ <div class="brand"><div class="orb" aria-hidden="true"></div><div><h1>Global Investment Challenge <span style="font-size:12px;color:#00dc92;border:1px solid #00dc92;border-radius:6px;padding:3px 7px;white-space:nowrap">V2.6 LIVE LEADERBOARD</span></h1><small>People + AI + Strategies for a Smarter Financial Future</small></div></div>
  <div class="tickers"><div class="ticker"><div class="tlabel">SOL</div><div class="tvalue">Waiting for live quote</div></div><div class="ticker"><div class="tlabel">XRP</div><div class="tvalue">Waiting for live quote</div></div><div class="ticker"><div class="tlabel">BTC</div><div class="tvalue">Waiting for live quote</div></div><div class="ticker"><div class="tlabel">ETH</div><div class="tvalue">Waiting for live quote</div></div></div>
  <div style="font-size:11px;color:#9cb2ce">Starting $2,500 · Funding cap $5,000</div><div id="liveFeedStatus" style="font-size:11px;max-width:190px;color:#ffbf3e" aria-live="polite">Connecting to crypto feed…</div><div class="online" title="Sample participation count">Demo participants</div><button class="bell" id="bell" aria-label="Notifications">♧</button><button class="avatar-btn" id="profile"><span class="avatar">●</span><span id="topGuest">Guest1024</span>⌄</button>
 </header>
@@ -91,7 +91,7 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.
  </aside>
 </div>
 </div>
-<div class="banner">V2.5 · LIVE CRYPTO QUOTES · VIRTUAL TRADING · GLOBAL RANKINGS AWAIT VERIFIED DATA</div>
+<div class="banner">V2.6 · LIVE CRYPTO QUOTES · VIRTUAL TRADING · GLOBAL RANKINGS AWAIT VERIFIED DATA</div>
 <div class="toast" id="toast" role="status"></div>
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-content"><h2 id="modalTitle">Account Backup</h2><p id="modalText"></p><div class="modal-actions" id="modalActions"></div></div></div>
 <input type="file" id="restoreFile" accept="application/json,.json" hidden>
@@ -116,7 +116,7 @@ function renderSummary(){var worth=equity(),gain=worth-STARTING_CAPITAL,pct=gain
 function renderAllocation(){var parts=[["Stocks",0,"#087aff"],["Crypto",0,"#8838e5"],["Cash",state.cash,"#02d68c"],["Others",0,"#ffc03b"]];Object.keys(state.positions).forEach(function(s){parts[COIN_SYMBOLS.includes(s)?1:0][1]+=posValue(s)});var w=equity()||1,acc=0,conic=[];parts.forEach(function(p){var start=acc;acc+=p[1]/w*100;conic.push(p[2]+" "+start.toFixed(3)+"% "+acc.toFixed(3)+"%")});el("donut").style.background="conic-gradient("+conic.join(",")+")";el("donutLabel").textContent=money(equity(),0);el("allocLegend").innerHTML=parts.map(function(p){return '<div class="alloc-row"><span style="white-space:nowrap"><i class="dot" style="background:'+p[2]+'"></i>'+p[0]+'</span><span>'+Math.round(p[1]/w*100)+'%</span></div>'}).join("")}
 function seedRand(s){var x=s|0;return function(){x=(Math.imul(x,1664525)+1013904223)|0;return (x>>>0)/4294967296}}
 var historyRequest=0;
-async async function drawCandles(){
+async function drawCandles(){
  const request=++historyRequest,symbol=selected,days=({"1D":1,"1W":7,"1M":30,"3M":90,"1Y":365,"ALL":365})[time]||1;
  var svg=el("candle"),note=document.querySelector(".chart-card-note");
  svg.innerHTML='<text x="25" y="110" fill="#aec5dc" font-size="15">Loading real price history…</text>';
@@ -256,7 +256,7 @@ function addSelectedCoin(s,direction){if(!COIN_SYMBOLS.includes(s)||chosenCoins.
 function showStrategyPicks(){
  var mode=el("strategyChoice").value,items=strategyRank();
  el("strategyExplanation").textContent=STRATEGY_INFO[mode];
- el("strategyPicks").innerHTML=items.length?'<div style="margin-bottom:6px;color:#9cb2ce">Choose Long or Short for a $500 virtual position. Close a position to free a slot.</div>'+items.map(function(x,i){var chosen=chosenCoins.includes(x),held=!!state.positions[x];return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid #193651"><span>'+(i+1)+'. '+x+' · '+money(ASSETS[x].price)+' · '+formatPct(ASSETS[x].change)+' (24h)</span>'+(held?'<span style="color:#9cb2ce">Open · close in positions</span>':chosen?'<span style="color:#00dc92">'+(chosenDirections[x]==="Short"?"↓ Short":"↑ Long")+' selected</span>':chosenCoins.length+Object.keys(state.positions).length>=5?'<span style="color:#9cb2ce">5/5 full</span>':'<button data-long="'+x+'" style="background:#087aff;color:#fff;border:0;padding:7px">↑ Long</button> <button data-short="'+x+'" style="background:#a64966;color:#fff;border:0;padding:7px">↓ Short</button>')+''</div>'}).join(""):"Live quotes unavailable — wait for the feed to connect.";
+ el("strategyPicks").innerHTML=items.length?'<div style="margin-bottom:6px;color:#9cb2ce">Choose Long or Short for a $500 virtual position. Close a position to free a slot.</div>'+items.map(function(x,i){var chosen=chosenCoins.includes(x),held=!!state.positions[x];return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid #193651"><span>'+(i+1)+'. '+x+' · '+money(ASSETS[x].price)+' · '+formatPct(ASSETS[x].change)+' (24h)</span>'+(held?'<span style="color:#9cb2ce">Open · close in positions</span>':chosen?'<span style="color:#00dc92">'+(chosenDirections[x]==="Short"?"↓ Short":"↑ Long")+' selected</span>':chosenCoins.length+Object.keys(state.positions).length>=5?'<span style="color:#9cb2ce">5/5 full</span>':'<button data-long="'+x+'" style="background:#087aff;color:#fff;border:0;padding:7px">↑ Long</button> <button data-short="'+x+'" style="background:#a64966;color:#fff;border:0;padding:7px">↓ Short</button>')+'</div>'}).join(""):"Live quotes unavailable — wait for the feed to connect.";
  el("strategyPicks").querySelectorAll("[data-long]").forEach(function(b){b.onclick=function(){addSelectedCoin(b.dataset.long,"Long")}});el("strategyPicks").querySelectorAll("[data-short]").forEach(function(b){b.onclick=function(){addSelectedCoin(b.dataset.short,"Short")}});
  updatePortfolioBuilder();renderMarkets();
 }
