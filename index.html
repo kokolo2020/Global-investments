@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#041322">
-<title>Global Investment Challenge · V1.4</title>
+<title>Global Investment Challenge · V1.5</title>
 <style>
 :root{--bg:#031321;--panel:#071e33;--panel2:#0c2540;--edge:#193651;--muted:#9cb2ce;--text:#f6faff;--blue:#087aff;--blue2:#0064ed;--green:#00dc92;--red:#ff5462;--gold:#ffbf3e}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);font:14px/1.45 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--text);min-width:320px}
@@ -41,7 +41,7 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.
 <body>
 <div class="app">
 <header class="topbar">
- <div class="brand"><div class="orb" aria-hidden="true"></div><div><h1>Global Investment Challenge <span style="font-size:12px;color:#00dc92;border:1px solid #00dc92;border-radius:6px;padding:3px 7px;white-space:nowrap">V1.4</span></h1><small>People + AI + Strategies for a Smarter Financial Future</small></div></div>
+ <div class="brand"><div class="orb" aria-hidden="true"></div><div><h1>Global Investment Challenge <span style="font-size:12px;color:#00dc92;border:1px solid #00dc92;border-radius:6px;padding:3px 7px;white-space:nowrap">V1.5 LIVE BETA</span></h1><small>People + AI + Strategies for a Smarter Financial Future</small></div></div>
  <div class="tickers"><div class="ticker"><div class="tlabel">S&amp;P 500</div><div class="tvalue">5,502.1 <b class="up">+0.84%</b></div></div><div class="ticker"><div class="tlabel">NASDAQ</div><div class="tvalue">17,352.6 <b class="up">+1.12%</b></div></div><div class="ticker"><div class="tlabel">BTC</div><div class="tvalue">63,245.3 <b class="up">+2.31%</b></div></div><div class="ticker"><div class="tlabel">ETH</div><div class="tvalue">3,245.8 <b class="up">+1.76%</b></div></div></div>
  <div style="font-size:11px;color:#9cb2ce">Starting $2,500 · Funding cap $5,000</div><div id="liveFeedStatus" style="font-size:11px;max-width:190px;color:#ffbf3e" aria-live="polite">Connecting to crypto feed…</div><div class="online" title="Sample participation count">Demo participants</div><button class="bell" id="bell" aria-label="Notifications">♧</button><button class="avatar-btn" id="profile"><span class="avatar">●</span><span id="topGuest">Guest1024</span>⌄</button>
 </header>
@@ -123,13 +123,13 @@ if(positionTab==="Trade History"){area.innerHTML=state.trades.length?'<table cla
 if(positionTab==="My Strategies"){area.innerHTML='<div style="padding:24px;color:#bad0e6">Active strategy mode: <strong style="color:white">'+safe(pick)+'</strong>. Strategy engine and shared competitions will be connected in a later release. Orders here are manually confirmed paper trades.</div>';return}
 if(positionTab==="Performance"){area.innerHTML='<div style="padding:24px;color:#bad0e6">Portfolio net return: <strong class="'+(equity()>=STARTING_CAPITAL?"up":"down")+'">'+formatPct((equity()/STARTING_CAPITAL-1)*100)+'</strong> &nbsp; · &nbsp; Realized trade P&amp;L: '+money(state.realized)+' &nbsp; · &nbsp; Cash: '+money(state.cash)+'. Performance chart below is illustrative.</div>';return}
 area.innerHTML='<div class="empty-state">Saved ideas are not enabled in the local preview yet.</div>'}
-function executeTrade(side,s,amount){if(!["BTC","ETH","SOL"].includes(s)){toast("Crypto only.");return}if(!liveUpdated[s] || Date.now()-liveUpdated[s]>120000){toast("Live quote required for "+s+". Paper order blocked until valid live market data is available.");return}if(!isFinite(amount)||amount<=0){toast("Enter a valid amount above $0.");return}var price=ASSETS[s].price,qty=amount/price,existing=state.positions[s];if(side==="Buy"){if(amount>state.cash+0.0001){toast("Insufficient virtual cash. Available: "+money(state.cash));return}state.cash-=amount;if(existing){existing.cost=(existing.cost*existing.qty+amount)/(existing.qty+qty);existing.qty+=qty}else{state.positions[s]={qty:qty,cost:price}}state.trades.push({side:side,symbol:s,qty:qty,price:price,amount:amount,pnl:0,at:new Date().toISOString()})}else{if(!existing||existing.qty<qty-1e-9){toast("You cannot sell more than you own. Use Close to exit the entire position.");return}var pnl=(price-existing.cost)*qty;state.cash+=amount;state.realized+=pnl;existing.qty-=qty;if(existing.qty<1e-9)delete state.positions[s];state.trades.push({side:side,symbol:s,qty:qty,price:price,amount:amount,pnl:pnl,at:new Date().toISOString()})}save();renderAll();toast(side+" paper trade saved: "+s+" · "+money(amount)+". Simulated fill using latest live quote; not an exchange execution.")}
+function executeTrade(side,s,amount){if(!COIN_SYMBOLS.includes(s)){toast("Select one of the 20 supported coins.");return}if(side==="Buy"&&(Math.abs(amount-500)>0.001||state.positions[s]||Object.keys(state.positions).length>=5)){toast("Buy $500 per unique coin, maximum five coins.");return}if(!liveUpdated[s] || Date.now()-liveUpdated[s]>300000){toast("Live quote required for "+s+". Paper order blocked until valid live market data is available.");return}if(!Number.isFinite(amount)||amount<=0){toast("Enter a valid amount above $0.");return}var price=ASSETS[s].price,qty=amount/price,existing=state.positions[s];if(side==="Buy"){if(amount>state.cash+0.0001){toast("Insufficient virtual cash. Available: "+money(state.cash));return}state.cash-=amount;if(existing){existing.cost=(existing.cost*existing.qty+amount)/(existing.qty+qty);existing.qty+=qty}else{state.positions[s]={qty:qty,cost:price}}state.trades.push({side:side,symbol:s,qty:qty,price:price,amount:amount,pnl:0,at:new Date().toISOString()})}else{if(!existing||existing.qty<qty-1e-9){toast("You cannot sell more than you own. Use Close to exit the entire position.");return}var pnl=(price-existing.cost)*qty;state.cash+=amount;state.realized+=pnl;existing.qty-=qty;if(existing.qty<1e-9)delete state.positions[s];state.trades.push({side:side,symbol:s,qty:qty,price:price,amount:amount,pnl:pnl,at:new Date().toISOString()})}save();renderAll();toast(side+" paper trade saved: "+s+" · "+money(amount)+". Simulated fill using latest live quote; not an exchange execution.")}
 function closePosition(s){var p=state.positions[s];if(!p)return;executeTrade("Sell",s,p.qty*ASSETS[s].price)}
 var rankSets={Weekly:[["AlphaWolf (AI)",28.4,8.2,"🔥","1.2K"],["SmartTrade88",24.7,10.1,"👏","980"],["GlobalQuant",22.3,9.8,"👍","864"],["AI-Hybrid-Pro",20.1,7.2,"🚀","756"],["MoonShot",18.9,12.4,"⭐","702"]],Monthly:[["QuantVoyager",46.3,11.6,"🔥","2.5K"],["AlphaWolf (AI)",41.9,9.3,"👏","1.9K"],["NebulaTrend",38.5,13.1,"🚀","1.4K"],["SmartTrade88",33.2,10.4,"👍","1.1K"],["CryptoCompass",29.7,14.8,"⭐","994"]],"All Time":[["AtlasQuant",136.2,19.1,"🏆","9.2K"],["NeuralEdge AI",118.7,17.2,"🔥","8.7K"],["AlphaWolf (AI)",97.3,20.2,"👏","6.4K"],["GlobalQuant",91.4,17.0,"🚀","5.1K"],["LongViewTrader",85.1,15.6,"⭐","4.2K"]]};var emojis=["🔥","👏","👍","🚀","⭐"];
 function renderLeaderboards(){el("periodTabs").querySelectorAll("button").forEach(function(b){b.classList.toggle("active",b.dataset.period===period)});var data=rankSets[period];el("leaderboardBody").innerHTML=data.map(function(x,i){var key=period+"-"+i,v=state.reactionVotes[key]||x[3],vote=state.reactionVotes[key]?" +1":"";return '<tr><td>'+(i===0?"🥇":i+1)+'</td><td class="lb-name">🌐 '+safe(x[0])+'</td><td class="up">+'+x[1]+'%</td><td>'+x[2]+'%</td><td><button class="reaction" data-react="'+key+'" title="Give a reaction">'+v+" "+x[4]+vote+'</button></td></tr>'}).join("")+'<tr class="me"><td>258</td><td>🌐 '+safe(state.name)+' (You)</td><td class="'+(equity()>=STARTING_CAPITAL?"up":"down")+'">'+formatPct((equity()/STARTING_CAPITAL-1)*100)+'</td><td>5.6%</td><td><button class="reaction" data-own-react="yes" title="Demo reactions">📈 21</button></td></tr>';el("leaderboardBody").querySelectorAll("[data-react]").forEach(function(b){b.onclick=function(){var key=b.dataset.react;var old=state.reactionVotes[key]||"👏";var next=emojis[(emojis.indexOf(old)+1)%emojis.length];state.reactionVotes[key]=next;save();renderLeaderboards();toast("Reaction changed to "+next+" (visible only in this browser).")}});el("leaderboardBody").querySelector("[data-own-react]").onclick=function(){toast("Shared reactions will become available after the backend launches.")}}
 var strategies=[["Quantum Trend","AI","+18.9%","1,243","🔥 432"],["Mean Reversion+","Hybrid","+16.7%","982","👏 388"],["Global Momentum","AI","+14.3%","1,120","👍 301"],["Crypto Dynamic","Manual","+13.6%","876","🚀 258"],["Volatility Hunter","Hybrid","+12.1%","654","⭐ 210"]];
 function renderStrategies(){el("strategyBody").innerHTML=strategies.map(function(x){return "<tr><td>"+x[0]+"</td><td class='muted'>"+x[1]+"</td><td class='up'>"+x[2]+"</td><td>"+x[3]+"</td><td>"+x[4]+"</td></tr>"}).join("")}
-var moverSets={Stocks:["AAPL","MSFT","NVDA","TSLA","AMZN"],Crypto:COIN_SYMBOLS,Forex:["EUR/USD","USD/JPY","GBP/USD","AUD/USD","USD/CAD"]};
+var moverSets={Stocks:[],Crypto:COIN_SYMBOLS,Forex:["EUR/USD","USD/JPY","GBP/USD","AUD/USD","USD/CAD"]};
 function spark(seed,bad){var r=seedRand(seed),points=[];for(var i=0;i<23;i++){var v=17-i*.45+(r()-.5)*7;if(bad)v=7+i*.43+(r()-.5)*7;points.push((i*4)+","+Math.max(1,Math.min(23,v)).toFixed(1))}return '<svg class="spark" viewBox="0 0 90 24"><polyline fill="none" stroke="'+(bad?"#ff4556":"#00e89b")+'" stroke-width="1.4" points="'+points.join(" ")+'"/></svg>'}
 function renderMarkets(){el("marketTabs").querySelectorAll("button").forEach(function(b){b.classList.toggle("active",b.dataset.market===marketTab)});var fx={"EUR/USD":[1.0932,.3],"USD/JPY":[149.25,-.13],"GBP/USD":[1.3098,.23],"AUD/USD":[.6713,.12],"USD/CAD":[1.3751,-.08]};el("moversBody").innerHTML=moverSets[marketTab].map(function(s,i){var a=ASSETS[s],price=a?a.price:fx[s][0],change=a?a.change:fx[s][1];return '<tr><td><strong>'+s+'</strong></td><td>'+num(price,price<3?4:2)+'</td><td class="'+(change>=0?"up":"down")+'">'+formatPct(change)+'</td><td>'+spark(71+i*60+marketTab.length*5,change<0)+'</td></tr>'}).join("")}
 function perf(){var r=seedRand(1724),mine=[],bench=[],v=0,b=0;for(var i=0;i<74;i++){v+=.17+(r()-.45)*.85;b+=.045+(r()-.5)*.28;mine.push(v);bench.push(b)}var max=Math.max(14,...mine),lo=-4,plot=function(a){return a.map(function(x,i){return (36+i*(473/(a.length-1))).toFixed(1)+","+(121-(x-lo)/(max-lo)*109).toFixed(1)}).join(" ")};var html=[];[-4,0,4,8,12].forEach(function(y){var yy=121-(y-lo)/(max-lo)*109;html.push('<line x1="35" x2="517" y1="'+yy+'" y2="'+yy+'" stroke="#18354c" stroke-width=".7"/><text x="0" y="'+(yy+4)+'" fill="#adbfda" font-size="11">'+y+'%</text>')});[36,105,174,243,312,381,450,517].forEach(function(x){html.push('<line x1="'+x+'" x2="'+x+'" y1="10" y2="122" stroke="#142f47" stroke-width=".6"/>')});html.push('<polyline points="'+plot(bench)+'" fill="none" stroke="#879fbc" stroke-width="2"/><polyline points="'+plot(mine)+'" fill="none" stroke="#068dff" stroke-width="2.7"/>');["Apr 10","Apr 13","Apr 16","Apr 19","Apr 22","Apr 25"].forEach(function(x,i){html.push('<text x="'+(36+i*86)+'" y="140" fill="#b2c6dc" font-size="11">'+x+"</text>")});el("perfSvg").innerHTML=html.join("")}
@@ -157,7 +157,7 @@ var STRATEGY_INFO={
  defensive:"Prioritizes BTC and ETH, then ranks the remaining coins by 24-hour strength."
 };
 function strategyRank(){
- var list=COIN_SYMBOLS.filter(function(x){return liveUpdated[x]&&Date.now()-liveUpdated[x]<120000&&ASSETS[x].price>0});
+ var list=COIN_SYMBOLS.filter(function(x){return liveUpdated[x]&&Date.now()-liveUpdated[x]<300000&&ASSETS[x].price>0});
  var sorted=list.slice().sort(function(a,b){return ASSETS[b].change-ASSETS[a].change});
  var mode=el("strategyChoice").value;
  if(mode==="dip")sorted.reverse();
@@ -169,7 +169,7 @@ function showStrategyPicks(){
  var mode=el("strategyChoice").value,items=strategyRank();
  el("strategyExplanation").textContent=STRATEGY_INFO[mode];
  el("strategyPicks").innerHTML=items.length?items.slice(0,20).map(function(x,i){return (i+1)+". "+x+" · "+formatPct(ASSETS[x].change)+" (24h) · $500 allocation"}).join("<br>"):"Live quotes unavailable — no picks until the feed connects.";
- if(items.length) {selected=items[0];el("symbolSelect").value=selected;chartInfo()}
+ if(items.length && (!liveUpdated[selected] || !COIN_SYMBOLS.includes(selected))) {selected=items[0];el("symbolSelect").value=selected;chartInfo()}
 }
 el("strategyChoice").onchange=showStrategyPicks;
 el("applyStrategy").onclick=showStrategyPicks;
@@ -183,14 +183,14 @@ async function refreshLiveQuotes(){
    var q=data.quotes&&data.quotes[symbol];
    if(!q || !(q.price>0))continue;
    var updated=Date.parse(q.updatedAt);
-   if(!Number.isFinite(updated)||Date.now()-updated>120000)continue;
+   if(!Number.isFinite(updated)||Date.now()-updated>300000)continue;
    ASSETS[symbol].price=q.price;
    ASSETS[symbol].change=q.change;
    ASSETS[symbol].delta=q.price*q.change/(100+q.change);
    liveUpdated[symbol]=updated;count++;
   }
   if(!count)throw Error("stale quotes");
-  updateLiveStatus("● LIVE CRYPTO · CoinGecko · "+new Date().toLocaleTimeString()+" · 20-coin universe",true);
+  updateLiveStatus("● LIVE CRYPTO · Provider · "+new Date().toLocaleTimeString()+" · 20-coin universe",true);
   document.querySelectorAll(".ticker").forEach(function(t){
    var name=t.querySelector(".tlabel")?.textContent.trim();
    var a=ASSETS[name];if(!a||!liveUpdated[name])return;
