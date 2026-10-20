@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#041322">
-<title>Global Investment Challenge · V2.3</title>
+<title>Global Investment Challenge · V2.4</title>
 <style>
 :root{--bg:#031321;--panel:#071e33;--panel2:#0c2540;--edge:#193651;--muted:#9cb2ce;--text:#f6faff;--blue:#087aff;--blue2:#0064ed;--green:#00dc92;--red:#ff5462;--gold:#ffbf3e}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);font:14px/1.45 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--text);min-width:320px}
@@ -41,7 +41,7 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.
 <body>
 <div class="app">
 <header class="topbar">
- <div class="brand"><div class="orb" aria-hidden="true"></div><div><h1>Global Investment Challenge <span style="font-size:12px;color:#00dc92;border:1px solid #00dc92;border-radius:6px;padding:3px 7px;white-space:nowrap">V2.3 LIVE LEADERBOARD</span></h1><small>People + AI + Strategies for a Smarter Financial Future</small></div></div>
+ <div class="brand"><div class="orb" aria-hidden="true"></div><div><h1>Global Investment Challenge <span style="font-size:12px;color:#00dc92;border:1px solid #00dc92;border-radius:6px;padding:3px 7px;white-space:nowrap">V2.4 LIVE LEADERBOARD</span></h1><small>People + AI + Strategies for a Smarter Financial Future</small></div></div>
  <div class="tickers"><div class="ticker"><div class="tlabel">SOL</div><div class="tvalue">Waiting for live quote</div></div><div class="ticker"><div class="tlabel">XRP</div><div class="tvalue">Waiting for live quote</div></div><div class="ticker"><div class="tlabel">BTC</div><div class="tvalue">Waiting for live quote</div></div><div class="ticker"><div class="tlabel">ETH</div><div class="tvalue">Waiting for live quote</div></div></div>
  <div style="font-size:11px;color:#9cb2ce">Starting $2,500 · Funding cap $5,000</div><div id="liveFeedStatus" style="font-size:11px;max-width:190px;color:#ffbf3e" aria-live="polite">Connecting to crypto feed…</div><div class="online" title="Sample participation count">Demo participants</div><button class="bell" id="bell" aria-label="Notifications">♧</button><button class="avatar-btn" id="profile"><span class="avatar">●</span><span id="topGuest">Guest1024</span>⌄</button>
 </header>
@@ -91,7 +91,7 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.
  </aside>
 </div>
 </div>
-<div class="banner">V2.3 · LIVE CRYPTO QUOTES · VIRTUAL TRADING · GLOBAL RANKINGS AWAIT VERIFIED DATA</div>
+<div class="banner">V2.4 · LIVE CRYPTO QUOTES · VIRTUAL TRADING · GLOBAL RANKINGS AWAIT VERIFIED DATA</div>
 <div class="toast" id="toast" role="status"></div>
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-content"><h2 id="modalTitle">Account Backup</h2><p id="modalText"></p><div class="modal-actions" id="modalActions"></div></div></div>
 <input type="file" id="restoreFile" accept="application/json,.json" hidden>
@@ -100,11 +100,7 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.
 "use strict";
 var COIN_SYMBOLS=["BTC","ETH","SOL","XRP","BNB","DOGE","ADA","TRX","LINK","AVAX","XLM","SUI","LTC","DOT","BCH","UNI","NEAR","APT","ETC","HBAR"];var ASSETS={BTC:{name:"Bitcoin",icon:"₿",price:63245.30,change:2.31,delta:1426},ETH:{name:"Ethereum",icon:"◆",price:3245.80,change:1.76,delta:56.15},SOL:{name:"Solana",icon:"◎",price:158.20,change:2.18,delta:3.38},XRP:{name:"XRP",icon:"✕",price:0,change:0,delta:0},LINK:{name:"Chainlink",icon:"⬡",price:0,change:0,delta:0},};
 /* Starting bankroll $2,500; maximum permitted funded bankroll $5,000. Profits may exceed this cap. */;var liveUpdated={};var liveStatus="Connecting to crypto feed…";var STARTING_CAPITAL=2500,MAX_CAPITAL=5000;;Object.keys({"BNB":"BNB","DOGE":"Dogecoin","ADA":"Cardano","TRX":"TRON","AVAX":"Avalanche","XLM":"Stellar","SUI":"Sui","LTC":"Litecoin","DOT":"Polkadot","BCH":"Bitcoin Cash","UNI":"Uniswap","NEAR":"NEAR Protocol","APT":"Aptos","ETC":"Ethereum Classic","HBAR":"Hedera"}).forEach(function(s){var names={"BNB":"BNB","DOGE":"Dogecoin","ADA":"Cardano","TRX":"TRON","AVAX":"Avalanche","XLM":"Stellar","SUI":"Sui","LTC":"Litecoin","DOT":"Polkadot","BCH":"Bitcoin Cash","UNI":"Uniswap","NEAR":"NEAR Protocol","APT":"Aptos","ETC":"Ethereum Classic","HBAR":"Hedera"};ASSETS[s]={name:names[s],icon:"●",price:0,change:0,delta:0}});var storageKey="global-investment-challenge-v1-2";var initial={name:"Guest1024",id:"G1024-DEMO",cash:STARTING_CAPITAL,startingCapital:STARTING_CAPITAL,capitalCap:MAX_CAPITAL,realized:0,positions:{},trades:[],reactionVotes:{},ideas:[]};
-function readState(){try{var o=JSON.parse(localStorage.getItem(storageKey));if(o&&o.positions&&typeof o.cash==="number"){
-var legacy=Object.keys(o.positions).some(function(sym){return !COIN_SYMBOLS.includes(sym)}) || o.cash>MAX_CAPITAL+0.01 && (!o.trades||o.trades.length===0);
-if(legacy&&(!o.trades||o.trades.length===0)){try{localStorage.setItem(storageKey+"-legacy-backup",JSON.stringify(o))}catch(e){}return JSON.parse(JSON.stringify(initial))}
-if(legacy){o.legacyWarning=true;return o}
-return o}}catch(e){}return JSON.parse(JSON.stringify(initial))}
+function readState(){try{var o=JSON.parse(localStorage.getItem(storageKey));if(o&&o.positions&&typeof o.cash==="number")return o}catch(e){}return JSON.parse(JSON.stringify(initial))}
 var state=readState(), selected="BTC",action="Buy",period="Weekly",positionTab="My Positions",marketTab="Crypto",pick="AI Pick",time="1D",notifyTimer=null;
 function save(){try{localStorage.setItem(storageKey,JSON.stringify(state))}catch(e){toast("Browser storage is unavailable. Export a backup to save changes.")}}
 function el(id){return document.getElementById(id)}
@@ -209,6 +205,17 @@ function openModal(title,description,buttons){el("modalTitle").textContent=title
 function hideModal(){el("modal").classList.remove("show")}
 function downloadBackup(){var data=JSON.stringify({app:"global-investment-challenge",version:1,state:state},null,2),blob=new Blob([data],{type:"application/json"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="global-investments-"+state.id+"-backup.json";document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},500);hideModal();toast("Account backup file prepared. Keep it safe to restore your positions.")}
 function openBackup(){openModal("Keep Your Guest Portfolio", "Your trades are saved in this browser only. Your Guest ID by itself CANNOT restore positions on a new device. Export a backup file to restore later; real cross-device login requires a database. Guest ID: "+state.id,[{label:"Download Backup",fn:downloadBackup},{label:"Restore Backup",fn:function(){hideModal();el("restoreFile").click()}},{label:"Close",secondary:true,fn:hideModal}])}
+function recoverLegacyAccount(){
+ var raw=localStorage.getItem(storageKey+"-legacy-backup");
+ if(!raw){toast("No automatic legacy backup found in this browser. Check exported backup files or your original browser.");return}
+ try{var old=JSON.parse(raw);if(!old||typeof old.cash!=="number"||!old.positions)throw Error("Invalid backup");
+ if(!confirm("Restore your previous saved account from the local legacy backup? This replaces the current displayed portfolio. Export a backup of your current portfolio first if needed."))return;
+ state=old;save();renderAll();showStrategyPicks();toast("Previous local account restored.");}catch(e){toast("Could not restore: "+e.message)}
+}
+if(localStorage.getItem(storageKey+"-legacy-backup")){
+ var recover=document.createElement("button");recover.textContent="Restore Previous Portfolio";recover.style.cssText="background:#12457c;color:white;border:1px solid #31d7ff;padding:10px 14px;border-radius:8px;margin:8px;cursor:pointer";recover.onclick=recoverLegacyAccount;
+ document.querySelector(".main").prepend(recover);
+}
 el("saveRecovery").onclick=openBackup;el("profile").onclick=openBackup;el("linkEmail").onclick=function(){openModal("Email Sync · Coming Soon","Secure email login and cross-device recovery require an authentication server. For now use Download Backup to preserve your data.",[{label:"Export Backup",fn:downloadBackup},{label:"Close",secondary:true,fn:hideModal}])};
 el("restoreFile").onchange=function(e){var f=e.target.files[0];if(!f)return;var reader=new FileReader;reader.onload=function(){try{var data=JSON.parse(reader.result);if(data.app!=="global-investment-challenge"||!data.state||!data.state.positions||typeof data.state.cash!=="number")throw Error("Not a valid backup");if(!confirm("Replace this browser's paper-trading portfolio with the imported backup?"))return;state=data.state;save();renderAll();toast("Portfolio restored from local backup.")}catch(err){toast("Backup could not be restored: "+err.message)}};reader.readAsText(f);e.target.value=""};
 el("modal").onclick=function(e){if(e.target===el("modal"))hideModal()};document.addEventListener("keydown",function(e){if(e.key==="Escape")hideModal()});
