@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#041322">
-<title>Global Investment Challenge · V2.1</title>
+<title>Global Investment Challenge · V2.2</title>
 <style>
 :root{--bg:#031321;--panel:#071e33;--panel2:#0c2540;--edge:#193651;--muted:#9cb2ce;--text:#f6faff;--blue:#087aff;--blue2:#0064ed;--green:#00dc92;--red:#ff5462;--gold:#ffbf3e}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);font:14px/1.45 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--text);min-width:320px}
@@ -41,7 +41,7 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.
 <body>
 <div class="app">
 <header class="topbar">
- <div class="brand"><div class="orb" aria-hidden="true"></div><div><h1>Global Investment Challenge <span style="font-size:12px;color:#00dc92;border:1px solid #00dc92;border-radius:6px;padding:3px 7px;white-space:nowrap">V2.1 LONG / SHORT</span></h1><small>People + AI + Strategies for a Smarter Financial Future</small></div></div>
+ <div class="brand"><div class="orb" aria-hidden="true"></div><div><h1>Global Investment Challenge <span style="font-size:12px;color:#00dc92;border:1px solid #00dc92;border-radius:6px;padding:3px 7px;white-space:nowrap">V2.2 LIVE LEADERBOARD</span></h1><small>People + AI + Strategies for a Smarter Financial Future</small></div></div>
  <div class="tickers"><div class="ticker"><div class="tlabel">SOL</div><div class="tvalue">Waiting for live quote</div></div><div class="ticker"><div class="tlabel">XRP</div><div class="tvalue">Waiting for live quote</div></div><div class="ticker"><div class="tlabel">BTC</div><div class="tvalue">Waiting for live quote</div></div><div class="ticker"><div class="tlabel">ETH</div><div class="tvalue">Waiting for live quote</div></div></div>
  <div style="font-size:11px;color:#9cb2ce">Starting $2,500 · Funding cap $5,000</div><div id="liveFeedStatus" style="font-size:11px;max-width:190px;color:#ffbf3e" aria-live="polite">Connecting to crypto feed…</div><div class="online" title="Sample participation count">Demo participants</div><button class="bell" id="bell" aria-label="Notifications">♧</button><button class="avatar-btn" id="profile"><span class="avatar">●</span><span id="topGuest">Guest1024</span>⌄</button>
 </header>
@@ -85,13 +85,13 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.
   </div>
  </main>
  <aside class="right">
-  <section class="card lb-card" id="leaderboard"><div class="right-head"><h3>You vs AI · Live Paper Leaderboard</h3><a id="fullLeaderboard">View All</a></div><div class="periods" id="periodTabs"><button class="active" data-period="Weekly">Weekly</button><button data-period="Monthly">Monthly</button><button data-period="All Time">All Time</button></div><table class="lb-table"><thead><tr><th>#</th><th>User / Strategy</th><th>Return</th><th>Equity</th><th>Type</th></tr></thead><tbody id="leaderboardBody"></tbody></table><div class="rank-note">Your live local paper competition; global leaderboard launches with shared database</div></section>
+  <section class="card lb-card" id="leaderboard"><div class="right-head"><h3>You vs AI · Live Paper Leaderboard</h3><a id="fullLeaderboard">View All</a></div><div class="periods" id="periodTabs"><button class="active" data-period="Weekly">Weekly</button><button data-period="Monthly">Monthly</button><button data-period="All Time">All Time</button></div><table class="lb-table"><thead><tr><th>#</th><th>Trader</th><th>P/L</th><th>Gain %</th><th>Equity</th><th>Positions</th></tr></thead><tbody id="leaderboardBody"></tbody></table><div class="rank-note">Your live local paper competition; global leaderboard launches with shared database</div></section>
   <section class="card strategy-card" id="strategies"><div class="right-head"><h3>Top Performing Strategies</h3><a id="allStrategies">View All</a></div><table class="strategy-table"><thead><tr><th>Strategy</th><th>Type</th><th>Return</th><th>Users</th><th>Reaction</th></tr></thead><tbody id="strategyBody"></tbody></table></section>
   <section class="card movers-card" id="markets"><div class="right-head"><h3>Choose Your Coins</h3><span style="font-size:11px;color:#00dc92">LIVE WHEN CONNECTED</span></div><div class="market-tabs" id="marketTabs"><button class="active" data-market="Crypto">All 20 Coins</button></div><table class="movers-table"><thead><tr><th>Symbol</th><th>Price</th><th>24h %</th><th>Long / Short</th></tr></thead><tbody id="moversBody"></tbody></table></section>
  </aside>
 </div>
 </div>
-<div class="banner">V1.9 · LIVE CRYPTO QUOTES · VIRTUAL TRADING · GLOBAL RANKINGS AWAIT VERIFIED DATA</div>
+<div class="banner">V2.2 · LIVE CRYPTO QUOTES · VIRTUAL TRADING · GLOBAL RANKINGS AWAIT VERIFIED DATA</div>
 <div class="toast" id="toast" role="status"></div>
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-content"><h2 id="modalTitle">Account Backup</h2><p id="modalText"></p><div class="modal-actions" id="modalActions"></div></div></div>
 <input type="file" id="restoreFile" accept="application/json,.json" hidden>
@@ -164,21 +164,24 @@ function recordCompetitionSnapshot(){
  state.trackHistory=state.trackHistory.filter(function(p){return now-p.t<95*86400000}).slice(-15000);
  save();
 }
-function competitionReturn(which){
+function competitionStats(which){
  var history=state.trackHistory||[],value=which==="ai"?portfolioEquityAI():equity();
- var windowDays=period==="Weekly"?7:period==="Monthly"?30:36500;
- var cutoff=Date.now()-windowDays*86400000;
- var samples=history.filter(function(p){return p.t>=cutoff&&Number.isFinite(p[which])});
- // When the account is younger than the selected window, compare from initial funding.
- var baseline=samples.length&&history[0].t<=cutoff?samples[0][which]:STARTING_CAPITAL;
- return 100*(value/baseline-1);
+ var days=period==="Weekly"?7:period==="Monthly"?30:null;
+ var cutoff=days?Date.now()-days*86400000:null;
+ var first=history[0],baseline=STARTING_CAPITAL,complete=!days;
+ if(days&&first&&first.t<=cutoff){
+  var start=history.find(function(h){return h.t>=cutoff});
+  if(start&&Number.isFinite(start[which])){baseline=start[which];complete=true}
+ }
+ var pnl=value-baseline;
+ return {pnl:pnl,pct:baseline>0?pnl/baseline*100:0,complete:complete};
 }
 function renderLeaderboards(){
  el("periodTabs").querySelectorAll("button").forEach(function(b){b.classList.toggle("active",b.dataset.period===period)});
- var hasAI=!!state.aiPortfolio,players=[{name:safe(state.name)+" (You)",value:equity(),r:competitionReturn("user"),tag:"USER"}];
- if(hasAI)players.push({name:"AI — "+safe(state.aiPortfolio.strategy),value:portfolioEquityAI(),r:competitionReturn("ai"),tag:"AI"});
- players.sort(function(a,b){return b.r-a.r});
- el("leaderboardBody").innerHTML=players.map(function(p,i){return '<tr><td>'+(i+1)+'</td><td class="lb-name">'+p.name+'</td><td class="'+(p.r>=0?"up":"down")+'">'+formatPct(p.r)+'</td><td>'+money(p.value)+'</td><td>'+p.tag+'</td></tr>'}).join("")+'<tr><td colspan="5" style="color:#9cb2ce;font-size:11px;padding:12px">Local You vs AI paper competition · actual recorded virtual positions, marked to live spot quotes. Both start at $2,500. Period returns use available snapshots; if there is insufficient history they are since inception. Global rankings require shared accounts.</td></tr>';
+ var entries=[{name:safe(state.name)+" (You)",value:equity(),stats:competitionStats("user"),count:Object.keys(state.positions).length}];
+ if(state.aiPortfolio)entries.push({name:"AI · "+safe(state.aiPortfolio.strategy),value:portfolioEquityAI(),stats:competitionStats("ai"),count:Object.keys(state.aiPortfolio.positions).length});
+ entries.sort(function(a,b){return b.stats.pct-a.stats.pct});
+ el("leaderboardBody").innerHTML=entries.map(function(p,i){var x=p.stats;return '<tr><td>'+(i+1)+'</td><td class="lb-name">'+p.name+'</td><td class="'+(x.pnl>=0?"up":"down")+'">'+(x.pnl>=0?"+":"-")+money(Math.abs(x.pnl))+'</td><td class="'+(x.pct>=0?"up":"down")+'">'+formatPct(x.pct)+'</td><td>'+money(p.value)+'</td><td>'+p.count+'/5</td></tr>'}).join("")+'<tr><td colspan="6" style="color:#9cb2ce;font-size:11px;padding:12px">Real-quote virtual portfolios · $2,500 starting capital each. '+(entries.every(function(x){return x.stats.complete})?'Selected period measured from saved snapshots.':'Not enough history for a full '+period.toLowerCase()+' period; shown P/L and return are since inception.')+' No global users until shared account storage is enabled.</td></tr>';
 }
 function renderStrategies(){
  el("strategyBody").innerHTML='<tr><td colspan="5" style="padding:20px;text-align:center;color:#b4c8de">No verified strategy returns yet. Results will appear after actual tracked paper trades and sufficient observation time.</td></tr>';
