@@ -41,7 +41,7 @@ function isStablecoin(x) {
 }
 exports.handler = async () => {
   try {
-    const url = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=150&page=1&sparkline=false&price_change_percentage=24h";
+    const url = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h";
     const response = await fetch(url, { headers: { accept: "application/json", "user-agent": "GlobalInvestmentChallenge/4.3" }, signal: AbortSignal.timeout(12000) });
     if (!response.ok) throw Error("Market provider HTTP "+response.status);
     const rows = await response.json();
