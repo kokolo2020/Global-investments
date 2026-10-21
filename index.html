@@ -30,6 +30,7 @@ const KEY='global-investments-simple-v3';const START=2500;const $=id=>document.g
 const init=()=>({cash:START,positions:[],history:[],snapshots:[],nickname:'',strategy:'',created:Date.now()});
 function load(){try{let a=JSON.parse(localStorage.getItem(KEY));if(a&&Array.isArray(a.positions)&&Number.isFinite(a.cash)&&Array.isArray(a.history))return a}catch(e){}return init()}
 let s=load(),market=[],chosen=[],period='Weekly',updated=0,provider='',timer=null;
+if(!s.strategy&&Array.isArray(s.positions)&&s.positions.length){s.strategy='Manual Long/Short'}
 const cash=n=>'$'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const price=n=>'$'+Number(n||0).toLocaleString('en-US',{maximumFractionDigits:n<1?6:2});
 const pct=n=>(n>=0?'+':'')+n.toFixed(2)+'%';
