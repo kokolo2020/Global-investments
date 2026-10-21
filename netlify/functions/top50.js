@@ -1,4 +1,4 @@
-// V3.1: Top 50 eligible non-stablecoin cryptocurrencies by market capitalization.
+// V3.2: Top 70 eligible non-stablecoin cryptocurrencies by market capitalization.
 // Filtering is based on known pegged-asset identities, not a $1 spot price.
 const STABLE_IDS = new Set([
   "tether","usd-coin","dai","ethena-usde","usds","first-digital-usd",
@@ -30,22 +30,22 @@ function isStablecoin(x) {
 }
 exports.handler = async () => {
   try {
-    const url = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h";
-    const response = await fetch(url, { headers: { accept: "application/json", "user-agent": "GlobalInvestmentChallenge/3.1" }, signal: AbortSignal.timeout(12000) });
+    const url = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=150&page=1&sparkline=false&price_change_percentage=24h";
+    const response = await fetch(url, { headers: { accept: "application/json", "user-agent": "GlobalInvestmentChallenge/3.2" }, signal: AbortSignal.timeout(12000) });
     if (!response.ok) throw Error("Market provider HTTP "+response.status);
     const rows = await response.json();
     if (!Array.isArray(rows)) throw Error("Invalid market feed");
-    const coins = rows.filter(x => x && x.id && x.symbol && Number.isFinite(x.current_price) && x.current_price > 0 && !isStablecoin(x)).slice(0,50).map(x => ({
+    const coins = rows.filter(x => x && x.id && x.symbol && Number.isFinite(x.current_price) && x.current_price > 0 && !isStablecoin(x)).slice(0,70).map(x => ({
       id:x.id, symbol:x.symbol, name:x.name, image:x.image,
       rank:x.market_cap_rank, price:x.current_price,
       change:Number(x.price_change_percentage_24h)||0
     }));
-    if (coins.length < 50) throw Error("Not enough non-stablecoins returned");
+    if (coins.length < 70) throw Error("Not enough non-stablecoins returned");
     return {statusCode:200, headers:{"content-type":"application/json","cache-control":"public,max-age=30"}, body:JSON.stringify({
-      source:"CoinGecko top 50 non-stablecoin assets by market cap",
+      source:"CoinGecko top 70 non-stablecoin assets by market cap",
       timestamp:new Date().toISOString(),coins
     })};
   } catch(e) {
-    return {statusCode:503,headers:{"content-type":"application/json","cache-control":"no-store"},body:JSON.stringify({error:"Top-50 non-stablecoin market feed unavailable. Trading paused."})};
+    return {statusCode:503,headers:{"content-type":"application/json","cache-control":"no-store"},body:JSON.stringify({error:"Top-70 non-stablecoin market feed unavailable. Trading paused."})};
   }
 };
