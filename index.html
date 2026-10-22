@@ -133,7 +133,7 @@ if(newVisitor){
  wc.onclick=e=>{const b=e.target.closest('[data-onboard]');if(!b)return;const id=b.dataset.onboard,i=chosen.findIndex(x=>x.id===id);if(i>=0)chosen.splice(i,1);else if(chosen.length<10)chosen.push({id,side:1,leverage:3,margin:250});else {we.textContent='Maximum 10 coins. Unselect a coin to replace it.';return}we.textContent='';list()};
  ws.oninput=list;wn.oninput=ready;
  go.onclick=()=>{const name=wn.value.trim();if(!valid()||chosen.length!==10||!/^[a-zA-Z0-9_]{3,20}$/.test(name)){ready();return}s.nickname=name;s.strategy='Manual Long/Short';persist();$('strategyMode').value=s.strategy;strategyNote();wf.hidden=true;document.body.style.overflow='';renderSelections();renderMarket();draw();$('pickPanel').scrollIntoView({behavior:'smooth',block:'start'});if(communityReady&&!communityToken)registerCommunity()};
- const oldRefresh=refresh;refresh=async function(){await oldRefresh();list()};list();
+ list();setInterval(()=>{if(!wf.hidden){if(market.length && !wc.querySelector('[data-onboard]'))list();ready()}},1500);
 }
 
 loadCommunity();setInterval(loadCommunity,15000);
