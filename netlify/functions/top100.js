@@ -12,7 +12,7 @@ exports.handler=async()=>{
    change24h:x.price_change_percentage_24h_in_currency,
    change7d:x.price_change_percentage_7d_in_currency,
    change30d:x.price_change_percentage_30d_in_currency,
-   marketCap:x.market_cap,volume24h:x.total_volume,high24h:x.high_24h,low24h:x.low_24h,
+   marketCap:x.market_cap,maxSupply:x.max_supply,totalSupply:x.total_supply,volume24h:x.total_volume,high24h:x.high_24h,low24h:x.low_24h,
    ath:x.ath,athChange:x.ath_change_percentage,circulatingSupply:x.circulating_supply,
    marketCapChange24h:x.market_cap_change_percentage_24h
   }));
