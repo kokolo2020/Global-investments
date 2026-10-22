@@ -39,6 +39,7 @@ function isStablecoin(x) {
     || /(?:stablecoin|stable coin|stable dollar|synthetic dollar|usd stable|euro stable)/i.test(name)
     || /^(?:bridged|wrapped|wormhole|binance-peg|axelar bridged)\s+(?:usdt|usdc|dai|usd[etcs]|eurc|busd)\b/i.test(name);
 }
+exports.isEligible = x => Boolean(x && x.id && x.symbol && Number.isFinite(x.current_price) && x.current_price > 0 && !isStablecoin(x) && !excludedAsset(x) && Number(x.total_volume)>=5000000);
 exports.handler = async () => {
   try {
     const url = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h";
@@ -46,7 +47,7 @@ exports.handler = async () => {
     if (!response.ok) throw Error("Market provider HTTP "+response.status);
     const rows = await response.json();
     if (!Array.isArray(rows)) throw Error("Invalid market feed");
-    const coins = rows.filter(x => x && x.id && x.symbol && Number.isFinite(x.current_price) && x.current_price > 0 && !isStablecoin(x) && !excludedAsset(x) && Number(x.total_volume)>=5000000).slice(0,70).map(x => ({
+    const coins = rows.filter(exports.isEligible).slice(0,70).map(x => ({
       id:x.id, symbol:x.symbol, name:x.name, image:x.image,
       rank:x.market_cap_rank, price:x.current_price,
       change:Number(x.price_change_percentage_24h)||0
