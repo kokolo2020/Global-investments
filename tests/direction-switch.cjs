@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const html=require('node:fs').readFileSync(__dirname+'/../index.html','utf8');
 const source=html.slice(html.indexOf('function reverseTradePlan('),html.indexOf('function requestNickname('));
 const run=new Function('s','market','fresh','accepted',`
- const coin=id=>market.find(c=>c.id===id),valid=()=>fresh;
+ const positionQuote=id=>fresh?market.find(c=>c.id===id&&c.price>0):null;
  const cash=String,price=String,alert=()=>{},confirm=()=>accepted;
  let writes=0;const persist=()=>writes++,snapshot=()=>{},draw=()=>{},renderSelections=()=>{},renderMarket=()=>{};
  ${source}
