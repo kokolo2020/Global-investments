@@ -1,7 +1,7 @@
 {
   "date": "2026-10-23",
   "timezone": "Asia/Bangkok",
-  "source": "User-provided screenshots of GIC report, Oct 23 2026 16:59 Bangkok; historical displayed observations (not live API)",
+  "source": "User-provided GIC report screenshots from Oct 23 2026 16:59–17:23 Bangkok; dated displayed observations, not live prices",
   "returns": {
     "XMR": [
       44.97,
@@ -134,6 +134,63 @@
     "ZRO": [
       52.06,
       110.02
+    ],
+    "LTC": [
+      13.04,
+      27.63
+    ],
+    "AVAX": [
+      21.02,
+      46.14
+    ],
+    "XAUT": [
+      -12.64,
+      -0.71
+    ],
+    "TAO": [
+      10,
+      36.44
+    ],
+    "ENA": [
+      24.09,
+      129.7
+    ],
+    "CRV": [
+      10.27,
+      78.3
+    ],
+    "TRX": [
+      -4.23,
+      -0.34
+    ],
+    "FIGR_HELOC": [
+      0.76,
+      1.02
+    ],
+    "HYPE": [
+      -5.3,
+      35.64
+    ],
+    "PAXG": [
+      -12.65,
+      -0.48
+    ],
+    "XLM": [
+      -11.69,
+      -0.85
+    ],
+    "VVV": [
+      56.67,
+      111.64
+    ],
+    "ATOM": [
+      11.23,
+      28.05
+    ],
+    "FIL": [
+      28.34,
+      38.14
     ]
-  }
+  },
+  "updatedAt": "2026-10-23T17:23:00+07:00"
 }
