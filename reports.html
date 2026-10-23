@@ -25,13 +25,13 @@ el('breadth').textContent='Market breadth: '+up+' of 50 assets advancing ('+(2*u
 const g=[...coins].sort((a,b)=>(b.change7d??-1e9)-(a.change7d??-1e9))[0];el('momentum').textContent='Strongest selected 7-day mover: '+g.symbol+' ('+pct(g.change7d)+'). Momentum is historical—not a forecast.';
 el('endstamp').textContent='Published market snapshot: '+date+'. Generated free by Global Investment Challenge.';allocate();
 }
-const histKey='gic-research-history-cache-v2';
+const histKey='gic-research-history-cache-v3';
 let historicalCache={};try{historicalCache=JSON.parse(localStorage.getItem(histKey))||{}}catch(e){}
 const saveHistory=()=>{try{localStorage.setItem(histKey,JSON.stringify(historicalCache))}catch(e){}};
 async function history(token){
  const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms)),failed=[];
  let ok=0,done=0;
- const fetchCoin=async c=>{const r=await fetch('/.netlify/functions/report-history?id='+encodeURIComponent(c.id),{cache:'default'});if(!r.ok)throw Error('Price history temporarily unavailable');const d=await r.json();if(d.id!==c.id)throw Error('Mismatched history');
+ const fetchCoin=async c=>{const r=await fetch('/.netlify/functions/report-history?id='+encodeURIComponent(c.id)+'&symbol='+encodeURIComponent(c.symbol),{cache:'default'});if(!r.ok)throw Error('Price history temporarily unavailable');const d=await r.json();if(d.id!==c.id)throw Error('Mismatched history');
  c.change60d=Number.isFinite(d.change60d)?d.change60d:null;c.change90d=Number.isFinite(d.change90d)?d.change90d:null;
  if(c.change60d!=null||c.change90d!=null){historicalCache[c.id]={date:Date.now(),change60d:c.change60d,change90d:c.change90d};saveHistory()}
  return c.change60d!=null&&c.change90d!=null};
