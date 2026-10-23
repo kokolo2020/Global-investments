@@ -200,9 +200,9 @@ async function loadCommunity(){
   const r=await fetch(communityUrl,{cache:'no-store'});
   if(!r.ok)throw Error('Unavailable');
   globalData=await r.json();communityReady=true;
-  if(s.nickname && !communityToken){await registerCommunity();}
+  if(s.nickname && !communityToken){$('leaderNote').textContent='Existing local name found, but worldwide identity token is missing. Automatic account creation disabled to prevent duplicates.';}
   if(communityToken && s.nickname && !globalSelfId){
-   try{const p=await communityAPI({action:'register',nickname:s.nickname,token:communityToken});globalSelfId=p.player.id}catch(e){communityToken='';localStorage.removeItem(tokenKey)}
+   try{const p=await communityAPI({action:'register',nickname:s.nickname,token:communityToken});globalSelfId=p.player.id}catch(e){$('leaderNote').textContent='Could not verify existing worldwide identity. Your saved token has been preserved; no new player will be created.';}
   }
   if(communityToken && globalSelfId && equity()!==null && Date.now()-lastSync>55000){
    await communityAPI({action:'sync',token:communityToken,equity:equity(),strategy:s.strategy||'Manual Long/Short'});lastSync=Date.now();
@@ -211,7 +211,7 @@ async function loadCommunity(){
  finally{communityBusy=false;renderGlobal()}
 }
 async function registerCommunity(){
- if(!communityReady||!s.nickname)return;
+ if(!communityReady||!s.nickname||!communityToken)return;
  try{
   const p=await communityAPI({action:'register',nickname:s.nickname,token:communityToken||undefined,strategy:s.strategy||'Manual Long/Short'});
   globalSelfId=p.player.id;communityToken=p.token;localStorage.setItem(tokenKey,communityToken);
@@ -229,10 +229,16 @@ async function registerCommunity(){
  }
 }
 const oldPrompt=requestNickname;
-requestNickname=function(){oldPrompt();if(s.nickname && communityReady && !communityToken)registerCommunity()};
-const nickButton=$('nicknameBtn');
-nickButton.addEventListener('click',()=>{if(s.nickname && communityReady && !communityToken)registerCommunity()});
-
+requestNickname=function(){oldPrompt();if(s.nickname&&!communityToken)$('leaderNote').textContent='Nickname saved locally. Worldwide profile not auto-created to avoid duplicates.'};
+$('nicknameBtn').onclick=async()=>{
+ const input=window.prompt('Leaderboard nickname (3–20 letters, numbers or underscores):',s.nickname||'');
+ if(input===null)return;const value=input.trim();
+ if(!/^[a-zA-Z0-9_]{3,20}$/.test(value)){alert('Invalid nickname');return}
+ if(communityToken){
+  try{const p=await communityAPI({action:'rename',token:communityToken,nickname:value});s.nickname=p.nickname||value;persist();draw();await loadCommunity();$('leaderNote').textContent='Renamed existing worldwide account. Portfolio and score retained.'}
+  catch(e){$('leaderNote').textContent='Rename failed: '+e.message+'. Existing account unchanged.'}
+ }else{s.nickname=value;persist();draw();$('leaderNote').textContent='Name updated locally only. Worldwide registration blocked until existing account can be recovered.'}
+};
 // First-visit onboarding. Existing local participants keep their saved game.
 const newVisitor=!s.nickname&&!s.positions.length&&!s.history.length;
 if(newVisitor){
