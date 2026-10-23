@@ -25,13 +25,27 @@ el('breadth').textContent='Market breadth: '+up+' of 50 assets advancing ('+(2*u
 const g=[...coins].sort((a,b)=>(b.change7d??-1e9)-(a.change7d??-1e9))[0];el('momentum').textContent='Strongest selected 7-day mover: '+g.symbol+' ('+pct(g.change7d)+'). Momentum is historical—not a forecast.';
 el('endstamp').textContent='Published market snapshot: '+date+'. Generated free by Global Investment Challenge.';allocate();
 }
+const histKey='gic-research-history-cache-v2';
+let historicalCache={};try{historicalCache=JSON.parse(localStorage.getItem(histKey))||{}}catch(e){}
+const saveHistory=()=>{try{localStorage.setItem(histKey,JSON.stringify(historicalCache))}catch(e){}};
 async function history(token){
- const pending=[...coins],failed=[];let done=0,ok=0;const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
- const fetchCoin=async c=>{const r=await fetch('/.netlify/functions/report-history?id='+encodeURIComponent(c.id),{cache:'default'});if(!r.ok)throw Error('Price history temporarily unavailable');const d=await r.json();if(d.id!==c.id)throw Error('Mismatched history');c.change60d=Number.isFinite(d.change60d)?d.change60d:null;c.change90d=Number.isFinite(d.change90d)?d.change90d:null;return c.change60d!=null||c.change90d!=null};
- async function progress(label){if(token!==loadToken)return;render();el('status').textContent=label+' · '+ok+'/50 historical returns available · '+done+'/50 checked'}
- for(const c of pending){if(token!==loadToken)return;try{if(await fetchCoin(c))ok++;else failed.push(c)}catch(e){failed.push(c)}done++;await progress('Loading 60d / 90d history');await sleep(2600)}
- for(let pass=0;pass<2&&failed.length&&token===loadToken;pass++){const retry=[...failed];failed.length=0;for(const c of retry){if(token!==loadToken)return;try{if(await fetchCoin(c))ok++;else failed.push(c)}catch(e){failed.push(c)}await progress('Retrying missing history (pass '+(pass+1)+'/2)');await sleep(pass===0?4500:7000)}}
- if(token===loadToken){await progress('Historical update finished');historyComplete=true;const missing=coins.filter(c=>!Number.isFinite(c.change60d)||!Number.isFinite(c.change90d));if(missing.length===0){el('download').disabled=false;el('download').textContent='⬇ FREE PDF · 3 PAGES';el('status').textContent='COMPLETE REPORT READY · all 50 coins have both 60d and 90d observations. PDF export enabled.';}else{el('download').disabled=true;el('status').textContent='PDF WAITING · '+(50-missing.length)+'/50 coins have complete 60d and 90d history; '+missing.length+' incomplete after retries. Refresh to retry later.';}}
+ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms)),failed=[];
+ let ok=0,done=0;
+ const fetchCoin=async c=>{const r=await fetch('/.netlify/functions/report-history?id='+encodeURIComponent(c.id),{cache:'default'});if(!r.ok)throw Error('Price history temporarily unavailable');const d=await r.json();if(d.id!==c.id)throw Error('Mismatched history');
+ c.change60d=Number.isFinite(d.change60d)?d.change60d:null;c.change90d=Number.isFinite(d.change90d)?d.change90d:null;
+ if(c.change60d!=null||c.change90d!=null){historicalCache[c.id]={date:Date.now(),change60d:c.change60d,change90d:c.change90d};saveHistory()}
+ return c.change60d!=null&&c.change90d!=null};
+ const progress=label=>{if(token!==loadToken)return;render();el('status').textContent=label+' · '+ok+'/50 complete · '+done+'/50 checked'};
+ const todo=[];for(const c of coins){const cache=historicalCache[c.id];if(cache&&Date.now()-cache.date<12*3600000){c.change60d=cache.change60d;c.change90d=cache.change90d;if(Number.isFinite(c.change60d)&&Number.isFinite(c.change90d)){ok++;done++;continue}}todo.push(c)}
+ progress('Restored verified historical prices');
+ for(const c of todo){if(token!==loadToken)return;try{if(await fetchCoin(c))ok++;else failed.push(c)}catch(e){failed.push(c)}done++;progress('Loading missing 60d / 90d');await sleep(2600)}
+ for(let pass=0;pass<2&&failed.length&&token===loadToken;pass++){const retry=[...failed];failed.length=0;for(const c of retry){if(token!==loadToken)return;try{if(await fetchCoin(c))ok++;else failed.push(c)}catch(e){failed.push(c)}progress('Retrying missing history ('+(pass+1)+'/2)');await sleep(pass===0?4500:7000)}}
+ if(token!==loadToken)return;
+ progress('Historical collection finished');historyComplete=true;
+ const missing=coins.filter(c=>!Number.isFinite(c.change60d)||!Number.isFinite(c.change90d));
+ el('download').disabled=missing.length>0;
+ if(missing.length===0){el('download').textContent='⬇ FREE PDF · 3 PAGES';el('status').textContent='COMPLETE REPORT · 50/50 verified 60d + 90d histories. PDF ready.'}
+ else el('status').textContent='WAITING · '+(50-missing.length)+'/50 have both histories · '+missing.length+' unavailable. Saved completed values to this browser for the next retry.';
 }
 async function load(){const token=++loadToken;historyComplete=false;el('download').textContent='⬇ FREE PDF · WAIT FOR ALL 50';el('status').textContent='Fetching latest top-200 candidates…';el('download').disabled=true;try{const r=await fetch('/.netlify/functions/ai-top50',{cache:'no-store'}),d=await r.json();if(!r.ok||d.coins?.length!==50)throw Error(d.error||'Incomplete market data');coins=d.coins;stamp=d.timestamp;render();el('status').textContent='LIVE REPORT READY · '+new Date(stamp).toLocaleString();el('download').disabled=true;history(token).catch(e=>{if(token===loadToken){el('download').disabled=true;el('status').textContent='Historical processing interrupted. PDF export disabled until all 50 coins have complete data.'}})}catch(e){coins=[];el('status').textContent='Live feed unavailable. Free PDF export paused to avoid outdated or invented statistics.'}}
 el('refresh').onclick=load;el('download').onclick=()=>{if(historyComplete&&coins.length===50&&coins.every(c=>Number.isFinite(c.change60d)&&Number.isFinite(c.change90d)))window.print()};load();
