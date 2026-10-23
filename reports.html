@@ -19,7 +19,7 @@ function allocate(){
 function render(){if(coins.length!==50)return;const up=coins.filter(x=>x.change24h>0).length,down=coins.filter(x=>x.change24h<0).length,vol=coins.reduce((n,x)=>n+(Number(x.volume24h)||0),0),cap=coins.reduce((n,x)=>n+(Number(x.marketCap)||0),0),date=new Date(stamp).toLocaleString();
 el('timestamp').textContent='Market snapshot: '+date+' | CoinGecko | 50 picks from top 200 by global market capitalization';
 el('metrics').innerHTML=[['Selected assets','50'],['24h advancers',up+' / 50'],['Aggregate 24h volume',short(vol)],['Aggregate market cap',short(cap)]].map(x=>'<div class="metric"><small>'+x[0]+'</small><strong>'+x[1]+'</strong></div>').join('');
-el('overview').textContent='Our screening model selected 50 qualifying assets from the top-200 market-cap universe. '+up+' assets advanced and '+down+' declined in the last 24 hours. Scores prioritize liquidity, relative market size and measured momentum rather than price forecasts. The 60-day and 90-day columns are fetched separately from historical price data; — means unavailable, not zero.';
+el('overview').textContent='Our screening model selected 50 qualifying assets from the top-200 market-cap universe. '+up+' assets advanced and '+down+' declined in the last 24 hours. Scores prioritize liquidity, relative market size and measured momentum rather than price forecasts. The 60-day and 90-day columns are fetched separately from historical price data; — means unavailable, not zero. Oct 23 archived values may be restored only for a same-day report snapshot.';
 el('r1').innerHTML=rows(coins.slice(0,25),0);el('r2').innerHTML=rows(coins.slice(25),25);
 el('breadth').textContent='Market breadth: '+up+' of 50 assets advancing ('+(2*up).toFixed(0)+'%). This indicates '+(up>=33?'broad positive':up<=17?'broad negative':'mixed')+' short-term participation.';
 const g=[...coins].sort((a,b)=>(b.change7d??-1e9)-(a.change7d??-1e9))[0];el('momentum').textContent='Strongest selected 7-day mover: '+g.symbol+' ('+pct(g.change7d)+'). Momentum is historical—not a forecast.';
@@ -28,6 +28,14 @@ el('endstamp').textContent='Published market snapshot: '+date+'. Generated free 
 const histKey='gic-research-history-cache-v3';
 let historicalCache={};try{historicalCache=JSON.parse(localStorage.getItem(histKey))||{}}catch(e){}
 const saveHistory=()=>{try{localStorage.setItem(histKey,JSON.stringify(historicalCache))}catch(e){}};
+async function applyDatedSnapshot(token){
+ try{const r=await fetch('/data/research-history-snapshot-2026-10-23.json',{cache:'force-cache'});if(!r.ok)return;const d=await r.json();if(token!==loadToken||!stamp)return;
+ const reportDate=new Date(stamp).toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'}),nowDate=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'});
+ if(reportDate!==d.date||nowDate!==d.date)return;
+ let count=0;for(const c of coins){const v=d.returns[c.symbol];if(!v||v.length!==2)continue;if(!Number.isFinite(c.change60d)){c.change60d=v[0];count++}if(!Number.isFinite(c.change90d)){c.change90d=v[1];count++}c.screenshotSnapshot=true}
+ if(count){render();el('status').textContent='Restored '+count+' dated historical cells from Oct 23 screenshot snapshot; fetching fresh data for missing values.'}
+ }catch(e){}
+}
 async function history(token){
  const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms)),failed=[];
  let ok=0,done=0;
@@ -36,7 +44,7 @@ async function history(token){
  if(c.change60d!=null||c.change90d!=null){historicalCache[c.id]={date:Date.now(),change60d:c.change60d,change90d:c.change90d};saveHistory()}
  return c.change60d!=null&&c.change90d!=null};
  const progress=label=>{if(token!==loadToken)return;render();el('status').textContent=label+' · '+ok+'/50 complete · '+done+'/50 checked'};
- const todo=[];for(const c of coins){const cache=historicalCache[c.id];if(cache&&Date.now()-cache.date<12*3600000){c.change60d=cache.change60d;c.change90d=cache.change90d;if(Number.isFinite(c.change60d)&&Number.isFinite(c.change90d)){ok++;done++;continue}}todo.push(c)}
+ const todo=[];for(const c of coins){const cache=historicalCache[c.id];if(cache&&Date.now()-cache.date<12*3600000){c.change60d=cache.change60d;c.change90d=cache.change90d;if(Number.isFinite(c.change60d)&&Number.isFinite(c.change90d)){ok++;done++;continue}}if(Number.isFinite(c.change60d)&&Number.isFinite(c.change90d)){ok++;done++;continue}todo.push(c)}
  progress('Restored verified historical prices');
  for(const c of todo){if(token!==loadToken)return;try{if(await fetchCoin(c))ok++;else failed.push(c)}catch(e){failed.push(c)}done++;progress('Loading missing 60d / 90d');await sleep(2600)}
  for(let pass=0;pass<2&&failed.length&&token===loadToken;pass++){const retry=[...failed];failed.length=0;for(const c of retry){if(token!==loadToken)return;try{if(await fetchCoin(c))ok++;else failed.push(c)}catch(e){failed.push(c)}progress('Retrying missing history ('+(pass+1)+'/2)');await sleep(pass===0?4500:7000)}}
@@ -47,7 +55,7 @@ async function history(token){
  if(missing.length===0){el('download').textContent='⬇ FREE PDF · 3 PAGES';el('status').textContent='COMPLETE REPORT · 50/50 verified 60d + 90d histories. PDF ready.'}
  else el('status').textContent='WAITING · '+(50-missing.length)+'/50 have both histories · '+missing.length+' unavailable. Saved completed values to this browser for the next retry.';
 }
-async function load(){const token=++loadToken;historyComplete=false;el('download').textContent='⬇ FREE PDF · WAIT FOR ALL 50';el('status').textContent='Fetching latest top-200 candidates…';el('download').disabled=true;try{const r=await fetch('/.netlify/functions/ai-top50',{cache:'no-store'}),d=await r.json();if(!r.ok||d.coins?.length!==50)throw Error(d.error||'Incomplete market data');coins=d.coins;stamp=d.timestamp;render();el('status').textContent='LIVE REPORT READY · '+new Date(stamp).toLocaleString();el('download').disabled=true;history(token).catch(e=>{if(token===loadToken){el('download').disabled=true;el('status').textContent='Historical processing interrupted. PDF export disabled until all 50 coins have complete data.'}})}catch(e){coins=[];el('status').textContent='Live feed unavailable. Free PDF export paused to avoid outdated or invented statistics.'}}
+async function load(){const token=++loadToken;historyComplete=false;el('download').textContent='⬇ FREE PDF · WAIT FOR ALL 50';el('status').textContent='Fetching latest top-200 candidates…';el('download').disabled=true;try{const r=await fetch('/.netlify/functions/ai-top50',{cache:'no-store'}),d=await r.json();if(!r.ok||d.coins?.length!==50)throw Error(d.error||'Incomplete market data');coins=d.coins;stamp=d.timestamp;render();el('status').textContent='LIVE REPORT READY · '+new Date(stamp).toLocaleString();el('download').disabled=true;applyDatedSnapshot(token).then(()=>history(token)).catch(e=>{if(token===loadToken){el('download').disabled=true;el('status').textContent='Historical processing interrupted. PDF export disabled until all 50 coins have complete data.'}})}catch(e){coins=[];el('status').textContent='Live feed unavailable. Free PDF export paused to avoid outdated or invented statistics.'}}
 el('refresh').onclick=load;el('download').onclick=()=>{if(historyComplete&&coins.length===50&&coins.every(c=>Number.isFinite(c.change60d)&&Number.isFinite(c.change90d)))window.print()};load();
 })();
 </script></body></html>
