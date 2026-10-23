@@ -1,4 +1,4 @@
-const ids={BTC:"bitcoin",ETH:"ethereum",SOL:"solana",BNB:"binancecoin",XRP:"ripple",LINK:"chainlink",AVAX:"avalanche-2",NEAR:"near",ADA:"cardano",DOT:"polkadot"};
+const ids={BTC:"bitcoin",ETH:"ethereum",SOL:"solana",BNB:"binancecoin",XRP:"ripple",LINK:"chainlink",AVAX:"avalanche-2",NEAR:"near",ADA:"cardano",DOT:"polkadot",LTC:"litecoin",BCH:"bitcoin-cash",UNI:"uniswap",AAVE:"aave",ATOM:"cosmos",ETC:"ethereum-classic",FIL:"filecoin",APT:"aptos",SUI:"sui",XLM:"stellar"};
 let cache=null,at=0;
 exports.handler=async()=>{
 try{
