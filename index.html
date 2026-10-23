@@ -217,7 +217,16 @@ async function registerCommunity(){
   globalSelfId=p.player.id;communityToken=p.token;localStorage.setItem(tokenKey,communityToken);
   if(equity()!==null)await communityAPI({action:'sync',token:communityToken,equity:equity()});
   await loadCommunity();
- }catch(e){alert('Worldwide profile not connected: '+e.message)}
+ }catch(e){
+  if(/nickname is taken|nickname.*already|already.*nickname/i.test(String(e.message||''))){
+   const replacement=window.prompt('That leaderboard nickname is already registered. Choose a unique name (3–20 letters, numbers or underscores):',s.nickname+'_1');
+   if(replacement===null){$('leaderNote').textContent='Your local paper portfolio is safe. Choose a different nickname later to join the worldwide leaderboard.';return;}
+   const name=replacement.trim();
+   if(!/^[a-zA-Z0-9_]{3,20}$/.test(name)){alert('Nickname must be 3–20 letters, numbers or underscores. Your existing trades are unchanged.');return;}
+   s.nickname=name;persist();draw();
+   try{const p=await communityAPI({action:'register',nickname:name,strategy:s.strategy||'Manual Long/Short'});globalSelfId=p.player.id;communityToken=p.token;localStorage.setItem(tokenKey,communityToken);if(equity()!==null)await communityAPI({action:'sync',token:communityToken,equity:equity()});await loadCommunity();}catch(err){$('leaderNote').textContent='Worldwide registration pending: '+err.message+'. Choose a different name later; local trades remain safe.';}
+  }else{$('leaderNote').textContent='Worldwide profile unavailable: '+e.message+'. Local trading remains available.';}
+ }
 }
 const oldPrompt=requestNickname;
 requestNickname=function(){oldPrompt();if(s.nickname && communityReady && !communityToken)registerCommunity()};
